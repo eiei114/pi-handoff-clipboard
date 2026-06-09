@@ -1,6 +1,6 @@
 {
   "name": "pi-handoff-clipboard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Clipboard-first Pi extension that turns the current conversation into a next-session handoff prompt.",
   "type": "module",
   "license": "MIT",

@@ -5,7 +5,6 @@ const { buildGenerationMessage, normalizeGeneratedPrompt } = await import("../li
 
 test("buildGenerationMessage embeds authoritative lists", () => {
   const message = buildGenerationMessage({
-    goal: "continue implementation",
     conversationText: "history",
     observedFiles: ["src/index.ts"],
     suggestedSkills: ["pi-oss-bootstrap"],
@@ -14,6 +13,8 @@ test("buildGenerationMessage embeds authoritative lists", () => {
   assert.equal(message.role, "user");
   assert.match(message.content[0].text, /src\/index.ts/);
   assert.match(message.content[0].text, /pi-oss-bootstrap/);
+  assert.doesNotMatch(message.content[0].text, /Goal for next session/);
+  assert.match(message.content[0].text, /Conversation history/);
 });
 
 test("normalizeGeneratedPrompt removes empty suggested-skills sections", () => {
