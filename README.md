@@ -13,13 +13,13 @@
 ## What this is
 
 `pi-handoff-clipboard` is a command-first Pi extension for fast context handoff.
-It asks for the next-session goal, collects the current branch context, formats a hybrid handoff prompt, and copies it straight to the clipboard.
+It reads the current branch context, formats a hybrid handoff prompt, and copies it straight to the clipboard.
 
 Use it when you want to split work into a fresh Pi session without saving a markdown handoff note first.
 
 ## Features
 
-- `/handoff:copy` command-first workflow with goal input via Pi UI
+- `/handoff:copy` writes a handoff summary immediately with no extra goal prompt
 - Clipboard-first delivery with no markdown artifact or auto-created session
 - Hybrid handoff prompt structure covering context, files involved, task, and suggested skills
 - Observed file tracking from real session tool usage rather than guessed file names
@@ -33,11 +33,10 @@ Use it when you want to split work into a fresh Pi session without saving a mark
 
 Flow:
 
-1. Ask for the next-session goal
-2. Read the current branch conversation with compaction awareness
-3. Reuse the active model to generate a self-contained handoff prompt
-4. Copy the result to the clipboard
-5. Notify success or failure
+1. Read the current branch conversation with compaction awareness
+2. Reuse the active model to generate a self-contained handoff prompt
+3. Copy the result to the clipboard
+4. Notify success or failure
 
 ## Install
 
@@ -56,7 +55,7 @@ pi install npm:@your-scope/your-pi-package
 Pin a specific version when you want reproducible installs:
 
 ```bash
-pi install npm:pi-handoff-clipboard@0.1.0
+pi install npm:pi-handoff-clipboard@0.1.1
 ```
 
 Install into the current project instead of your user Pi settings:
@@ -91,7 +90,7 @@ Then run:
 /handoff:copy
 ```
 
-Pi asks for the next-session goal, then puts a prompt like this onto your clipboard:
+Pi immediately puts a prompt like this onto your clipboard:
 
 ```md
 ## Context

@@ -5,11 +5,14 @@ export const HANDOFF_SYSTEM_PROMPT = `You generate clipboard-first handoff promp
 Rules:
 - Match the user's language.
 - Output only the final handoff prompt.
+- Summarize the current conversation so a fresh Pi session can continue the work.
 - Use imperative, next-session-start tone.
 - Keep headings exact: ## Context, ## Files involved, ## Task, and optionally ## Suggested skills.
+- Infer ## Task from the latest unresolved work in the conversation. Do not ask for or depend on a separately provided goal.
 - Treat the observed files list as authoritative. Do not invent files beyond the observed list.
 - Treat suggested skills as authoritative. Suggest only the listed skills, and omit the section entirely when none were used.
 - If no observed files were captured, say so plainly inside ## Files involved instead of inventing file names.
+- Do not duplicate content already captured in other artifacts such as PRDs, plans, ADRs, issues, commits, or diffs. Reference them by path or URL instead.
 - Make the prompt self-contained enough that the next session can continue without this thread.`;
 
 function formatList(items: string[], emptyLine: string): string {
@@ -21,7 +24,6 @@ function formatList(items: string[], emptyLine: string): string {
 }
 
 export function buildGenerationMessage(input: {
-  goal: string;
   conversationText: string;
   observedFiles: string[];
   suggestedSkills: string[];
@@ -36,9 +38,6 @@ export function buildGenerationMessage(input: {
       {
         type: "text",
         text: [
-          "## Goal for next session",
-          input.goal,
-          "",
           "## Observed files (authoritative)",
           observedFilesText,
           "",

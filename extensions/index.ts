@@ -22,7 +22,6 @@ import { collectUsedSkills, parseSkillCommand, SKILL_USAGE_ENTRY_TYPE } from "..
 
 async function generatePrompt(
   ctx: Parameters<NonNullable<Parameters<ExtensionAPI["registerCommand"]>[1]["handler"]>>[1],
-  goal: string,
   conversationText: string,
   observedFiles: string[],
   suggestedSkills: string[],
@@ -43,7 +42,6 @@ async function generatePrompt(
         systemPrompt: HANDOFF_SYSTEM_PROMPT,
         messages: [
           buildGenerationMessage({
-            goal,
             conversationText,
             observedFiles,
             suggestedSkills,
@@ -112,7 +110,7 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.registerCommand("handoff:copy", {
-    description: "Generate a next-session handoff prompt and copy it to the clipboard",
+    description: "Generate a handoff summary from the current conversation and copy it to the clipboard",
     handler: async (_args, ctx) => {
       if (!ctx.hasUI) {
         ctx.ui.notify("/handoff:copy requires interactive or RPC UI support", "error");
@@ -121,18 +119,6 @@ export default function (pi: ExtensionAPI) {
 
       if (!ctx.model) {
         ctx.ui.notify("Select a model before running /handoff:copy", "error");
-        return;
-      }
-
-      const goal = await ctx.ui.input("Next-session goal:", "");
-      if (goal === undefined) {
-        ctx.ui.notify("Cancelled", "info");
-        return;
-      }
-
-      const trimmedGoal = goal.trim();
-      if (!trimmedGoal) {
-        ctx.ui.notify("Goal is required for /handoff:copy", "error");
         return;
       }
 
@@ -147,7 +133,7 @@ export default function (pi: ExtensionAPI) {
       const suggestedSkills = collectUsedSkills(ctx.sessionManager.getBranch());
 
       try {
-        const prompt = await generatePrompt(ctx, trimmedGoal, conversationText, observedFiles, suggestedSkills);
+        const prompt = await generatePrompt(ctx, conversationText, observedFiles, suggestedSkills);
         if (!prompt) {
           ctx.ui.notify("Cancelled", "info");
           return;
