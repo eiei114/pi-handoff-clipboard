@@ -26,6 +26,23 @@ Publishing also runs when a GitHub Release is published, and can be run manually
 
 The workflow skips `name@version` if that exact package version already exists on npm.
 
+## Manual maintainer publish with OTP
+
+Use this only when you intentionally want a direct local publish instead of the normal GitHub Actions route.
+
+```bash
+npm run ci
+npm whoami
+npm publish --access public --otp=123456
+```
+
+Checks before running manual OTP publish:
+
+- `package.json` version is the version you want on npm
+- `CHANGELOG.md` is updated
+- `npm pack --dry-run` contains only intended files
+- npm package access is `public`
+
 ## Workflow guardrail
 
 Do not ship a new Pi OSS package or version bump with only `package.json` changes.
@@ -54,4 +71,3 @@ Important: tags or releases created by `GITHUB_TOKEN` do not reliably fan out in
 - [ ] `npm run ci` passes
 - [ ] `npm pack --dry-run` contains only intended files
 - [ ] CHANGELOG.md has the release date
-

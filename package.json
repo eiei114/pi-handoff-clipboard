@@ -1,10 +1,10 @@
 {
-  "name": "pi-extension-template",
-  "version": "0.1.2",
-  "description": "Template for building Pi packages with extensions, Agent Skills, prompts, and themes.",
+  "name": "pi-handoff-clipboard",
+  "version": "0.1.0",
+  "description": "Clipboard-first Pi extension that turns the current conversation into a next-session handoff prompt.",
   "type": "module",
   "license": "MIT",
-  "author": "YOUR_NAME",
+  "author": "eiei114",
   "keywords": [
     "pi-package",
     "pi",
@@ -13,18 +13,15 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OWNER/REPO.git"
+    "url": "git+https://github.com/eiei114/pi-handoff-clipboard.git"
   },
   "bugs": {
-    "url": "https://github.com/OWNER/REPO/issues"
+    "url": "https://github.com/eiei114/pi-handoff-clipboard/issues"
   },
-  "homepage": "https://github.com/OWNER/REPO#readme",
+  "homepage": "https://github.com/eiei114/pi-handoff-clipboard#readme",
   "files": [
     "extensions/",
     "lib/",
-    "skills/",
-    "prompts/",
-    "themes/",
     "docs/",
     "README.md",
     "LICENSE",
@@ -39,15 +36,6 @@
   "pi": {
     "extensions": [
       "./extensions"
-    ],
-    "skills": [
-      "./skills"
-    ],
-    "prompts": [
-      "./prompts"
-    ],
-    "themes": [
-      "./themes"
     ]
   },
   "publishConfig": {
