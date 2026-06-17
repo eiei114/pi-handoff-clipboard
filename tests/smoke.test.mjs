@@ -45,4 +45,5 @@ test("extension registers the clipboard handoff command", async () => {
   });
 
   assert.ok(registeredCommands.some((command) => command.name === "handoff:copy"));
+  assert.equal(registeredCommands.length, 1);
 });

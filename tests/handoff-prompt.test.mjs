@@ -17,6 +17,17 @@ test("buildGenerationMessage embeds authoritative lists", () => {
   assert.match(message.content[0].text, /Conversation history/);
 });
 
+test("buildGenerationMessage states when no observed files were captured", () => {
+  const message = buildGenerationMessage({
+    conversationText: "history",
+    observedFiles: [],
+    suggestedSkills: [],
+  });
+
+  assert.match(message.content[0].text, /No observed files captured in this session/);
+  assert.match(message.content[0].text, /\(omit the section\)/);
+});
+
 test("normalizeGeneratedPrompt removes empty suggested-skills sections", () => {
   const normalized = normalizeGeneratedPrompt(`## Context\nA\n\n## Suggested skills\n\n## Task\nB`);
   assert.equal(normalized, "## Context\nA\n\n## Task\nB");

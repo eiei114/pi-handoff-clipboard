@@ -24,6 +24,28 @@ test("extractObservedPathsFromToolResult recovers file matches from details and 
   assert.deepEqual(result, ["src/lib/file.ts", "src/lib/other.ts"]);
 });
 
+test("collectObservedFiles returns empty list when no tracked evidence exists", () => {
+  const result = collectObservedFiles(
+    [
+      {
+        type: "message",
+        id: "1",
+        parentId: null,
+        timestamp: "2026-06-09T00:00:00.000Z",
+        message: {
+          role: "toolResult",
+          toolName: "bash",
+          content: [{ type: "text", text: "src/index.ts:1: output" }],
+          timestamp: 1,
+        },
+      },
+    ],
+    "C:/repo",
+  );
+
+  assert.deepEqual(result, []);
+});
+
 test("collectObservedFiles deduplicates recorded entries", () => {
   const result = collectObservedFiles(
     [
