@@ -19,7 +19,7 @@ Use it when you want to split work into a fresh Pi session without saving a mark
 
 ## Features
 
-- `/handoff:copy` writes a handoff summary immediately with no extra goal prompt
+- `/handoff:copy` is the only v1 command and generates a handoff summary immediately with no extra goal prompt
 - Clipboard-first delivery with no markdown artifact or auto-created session
 - Hybrid handoff prompt structure covering context, files involved, task, and suggested skills
 - Observed file tracking from real session tool usage rather than guessed file names
@@ -55,7 +55,7 @@ pi install npm:@your-scope/your-pi-package
 Pin a specific version when you want reproducible installs:
 
 ```bash
-pi install npm:pi-handoff-clipboard@0.1.1
+pi install npm:pi-handoff-clipboard@0.1.2
 ```
 
 Install into the current project instead of your user Pi settings:
@@ -150,6 +150,10 @@ npm publish --access public --otp=123456
 ```
 
 See [`docs/release.md`](docs/release.md) for the release checklist and Trusted Publishing notes.
+
+## Roadmap
+
+See [`ROADMAP.md`](ROADMAP.md) for the shipped v1 scope and what is intentionally out of scope.
 
 ## Limitations
 

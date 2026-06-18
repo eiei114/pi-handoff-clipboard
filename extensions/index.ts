@@ -1,11 +1,10 @@
 import { complete } from "@earendil-works/pi-ai";
 import {
   BorderedLoader,
-  convertToLlm,
   copyToClipboard,
-  serializeConversation,
   type ExtensionAPI,
 } from "@earendil-works/pi-coding-agent";
+import { runHandoffCopyCommand } from "../lib/handoff-copy-command.ts";
 import {
   buildGenerationMessage,
   HANDOFF_SYSTEM_PROMPT,
@@ -17,8 +16,7 @@ import {
   extractObservedPathsFromToolResult,
   OBSERVED_FILES_ENTRY_TYPE,
 } from "../lib/observed-files.ts";
-import { getHandoffMessages } from "../lib/session-context.ts";
-import { collectUsedSkills, parseSkillCommand, SKILL_USAGE_ENTRY_TYPE } from "../lib/skill-suggestions.ts";
+import { parseSkillCommand, SKILL_USAGE_ENTRY_TYPE } from "../lib/skill-suggestions.ts";
 
 async function generatePrompt(
   ctx: Parameters<NonNullable<Parameters<ExtensionAPI["registerCommand"]>[1]["handler"]>>[1],
@@ -111,40 +109,10 @@ export default function (pi: ExtensionAPI) {
 
   pi.registerCommand("handoff:copy", {
     description: "Generate a handoff summary from the current conversation and copy it to the clipboard",
-    handler: async (_args, ctx) => {
-      if (!ctx.hasUI) {
-        ctx.ui.notify("/handoff:copy requires interactive or RPC UI support", "error");
-        return;
-      }
-
-      if (!ctx.model) {
-        ctx.ui.notify("Select a model before running /handoff:copy", "error");
-        return;
-      }
-
-      const messages = getHandoffMessages(ctx.sessionManager.getBranch());
-      if (messages.length === 0) {
-        ctx.ui.notify("No conversation context available to hand off", "error");
-        return;
-      }
-
-      const conversationText = serializeConversation(convertToLlm(messages));
-      const observedFiles = collectObservedFiles(ctx.sessionManager.getBranch(), ctx.cwd);
-      const suggestedSkills = collectUsedSkills(ctx.sessionManager.getBranch());
-
-      try {
-        const prompt = await generatePrompt(ctx, conversationText, observedFiles, suggestedSkills);
-        if (!prompt) {
-          ctx.ui.notify("Cancelled", "info");
-          return;
-        }
-
-        await copyToClipboard(prompt);
-        ctx.ui.notify("Handoff prompt copied to clipboard", "info");
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        ctx.ui.notify(`Clipboard handoff failed: ${message}`, "error");
-      }
-    },
+    handler: async (_args, ctx) =>
+      runHandoffCopyCommand(_args, ctx, {
+        generatePrompt,
+        copyToClipboard,
+      }),
   });
 }

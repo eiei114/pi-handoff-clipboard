@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This project follows semantic versioning.
 
+## [0.1.2] - 2026-06-17
+
+### Changed
+
+- Hardened `/handoff:copy` v1 flow with explicit clipboard-failure handling and regression tests for observed files and used-skill filtering.
+- Added `ROADMAP.md` and aligned public docs with the shipped clipboard-first v1 state.
+
 ## [0.1.1] - 2026-06-09
 
 ### Changed

@@ -10,6 +10,20 @@ test("parseSkillCommand reads slash skill invocations", () => {
   assert.equal(parseSkillCommand("/skill:handoff extra context"), "handoff");
 });
 
+test("collectUsedSkills ignores non-skill user messages", () => {
+  const result = collectUsedSkills([
+    {
+      type: "message",
+      id: "1",
+      parentId: null,
+      timestamp: "2026-06-09T00:00:00.000Z",
+      message: { role: "user", content: "please refactor src/index.ts", timestamp: 1 },
+    },
+  ]);
+
+  assert.deepEqual(result, []);
+});
+
 test("collectUsedSkills prefers explicit recorded skills and deduplicates", () => {
   const result = collectUsedSkills([
     {
