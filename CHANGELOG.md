@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add Buy Me a Coffee sponsor button to README and native GitHub funding link via `.github/FUNDING.yml`.
+
 All notable changes to this project will be documented in this file.
 
 This project follows semantic versioning.
@@ -25,3 +29,4 @@ This project follows semantic versioning.
 - `/handoff:copy` clipboard-first command scaffold and tracked-session handoff generation modules.
 - Session-aware observed file and used-skill tracking for handoff prompt generation.
 - Initial OSS bootstrap for `pi-handoff-clipboard`.
+
