@@ -5,7 +5,7 @@
 | Field | Value |
 | --- | --- |
 | Failed run | [28704536299](https://github.com/eiei114/pi-handoff-clipboard/actions/runs/28704536299) |
-| Workflow | `Publish to npm` (`.github/workflows/publish.yml`) |
+| Workflow | `Publish to npm` (GitHub Actions: `.github/workflows/publish.yml`) |
 | Trigger | `workflow_dispatch` |
 | Ref / branch | `v0.1.3` (`a73cf5f`) |
 | Package version | `pi-handoff-clipboard@0.1.3` |
@@ -61,14 +61,14 @@ On a `package.json` version bump merged to `main`, two independent `publish.yml`
 1. **Direct push trigger** — `publish.yml` listens for `push` to `main` when `package.json` changes.
 2. **Auto-release dispatch** — `auto-release.yml` creates tag `v0.1.3` and runs `gh workflow run publish.yml --ref v0.1.3`.
 
-Concurrency is keyed by git ref, not package version:
+Concurrency is keyed by git ref (or dispatch input), not package version:
 
 ```yaml
 concurrency:
   group: npm-publish-${{ github.event.inputs.ref || github.ref }}
 ```
 
-So `refs/heads/main` and `refs/tags/v0.1.3` do **not** serialize. The push run published first; the dispatched run's pre-publish `npm view` check still saw `E404` (registry propagation / race window) and attempted a second publish, which npm correctly rejected with `E403`.
+`auto-release.yml` dispatches with `-f ref="$TAG"` where `TAG` is `v0.1.3`, so the dispatched run uses `github.event.inputs.ref` and lands in group `npm-publish-v0.1.3`. The concurrent push run uses `npm-publish-refs/heads/main`. Those groups do **not** serialize. The push run published first; the dispatched run's pre-publish `npm view` check still saw `E404` (registry propagation / race window) and attempted a second publish, which npm correctly rejected with `E403`.
 
 This is **not** a Trusted Publishing / OIDC authentication failure.
 
@@ -105,7 +105,7 @@ else
 fi
 ```
 
-Expected today: `SKIP: pi-handoff-clipboard@0.1.3 is already on npm (0.1.3).`
+Expected when checked on 2026-07-14 (with `package.json` still at version `0.1.3`): `SKIP: pi-handoff-clipboard@0.1.3 is already on npm (0.1.3).`
 
 Optional registry snapshot:
 
@@ -121,7 +121,7 @@ Do **not** apply in this investigation slice. Open a follow-up correction issue 
 | Option | Change | Effect |
 | --- | --- | --- |
 | A (smallest) | Remove the `push` → `main` trigger from `publish.yml`; keep auto-release dispatch + tag/release/manual paths | Eliminates the duplicate path that won the race on 2026-07-04 |
-| B | Set `concurrency.group` to `npm-publish-${{ hash(package.name + package.version) }}` (or version string) | Serializes all publish attempts for the same version regardless of ref |
+| B | Keep the existing ref-based key (`npm-publish-${{ github.event.inputs.ref || github.ref }}`) and add a `version` workflow input used in `concurrency.group` (e.g. `npm-publish-${{ inputs.version }}`) so all entry points for the same release share one group | Serializes publish attempts for the same version when callers pass the same version input |
 | C | Harden skip step with short retry/backoff before treating `E404` as “not published” | Reduces false negatives when a sibling job just published |
 | D (process) | Document: after a version-bump merge, do not manually `workflow_dispatch` publish for the same tag | Prevents maintainer-triggered duplicates; does not fix automatic double trigger |
 
