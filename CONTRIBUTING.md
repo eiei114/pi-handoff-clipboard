@@ -30,5 +30,7 @@ Releases use npm Trusted Publishing. Do not add `NPM_TOKEN` to GitHub Secrets.
 
 ```bash
 npm version patch
-git push --follow-tags
+git push
 ```
+
+`auto-release.yml` creates the release tag and dispatches `publish.yml` after the version bump lands on `main`. Push the version commit only; see [`docs/release.md`](docs/release.md) for the full release flow.
