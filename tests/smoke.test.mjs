@@ -5,6 +5,8 @@ import test from "node:test";
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
 const autoReleaseWorkflow = await readFile(new URL("../.github/workflows/auto-release.yml", import.meta.url), "utf8");
 const publishWorkflow = await readFile(new URL("../.github/workflows/publish.yml", import.meta.url), "utf8");
+const contributing = await readFile(new URL("../CONTRIBUTING.md", import.meta.url), "utf8");
+const releaseDocs = await readFile(new URL("../docs/release.md", import.meta.url), "utf8");
 
 test("package declares pi resources", () => {
   assert.deepEqual(packageJson.pi.extensions, ["./extensions"]);
@@ -21,6 +23,16 @@ test("package uses public publish config", () => {
 test("package identity matches repository", () => {
   assert.equal(packageJson.name, "pi-handoff-clipboard");
   assert.match(packageJson.repository.url, /eiei114\/pi-handoff-clipboard/);
+});
+
+test("contributing release docs avoid manual tag pushes", () => {
+  assert.match(contributing, /npm version patch/);
+  assert.match(contributing, /^git push$/m);
+  assert.doesNotMatch(contributing, /--follow-tags/);
+  assert.doesNotMatch(contributing, /^git push --/m);
+  assert.doesNotMatch(contributing, /^git push origin/m);
+  assert.match(releaseDocs, /auto-release\.yml/);
+  assert.match(releaseDocs, /gh workflow run publish\.yml/);
 });
 
 test("template includes npm release workflow handoff", () => {
