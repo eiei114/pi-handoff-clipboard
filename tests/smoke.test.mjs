@@ -27,8 +27,10 @@ test("package identity matches repository", () => {
 
 test("contributing release docs avoid manual tag pushes", () => {
   assert.match(contributing, /npm version patch/);
-  assert.match(contributing, /git push/);
+  assert.match(contributing, /^git push$/m);
   assert.doesNotMatch(contributing, /--follow-tags/);
+  assert.doesNotMatch(contributing, /^git push --/m);
+  assert.doesNotMatch(contributing, /^git push origin/m);
   assert.match(releaseDocs, /auto-release\.yml/);
   assert.match(releaseDocs, /gh workflow run publish\.yml/);
 });
