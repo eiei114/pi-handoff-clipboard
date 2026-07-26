@@ -27,7 +27,7 @@ test("package identity matches repository", () => {
 });
 
 test("README pinned install example tracks the package version", () => {
-  assert.match(readme, new RegExp(`pi install npm:${packageJson.name}@${packageJson.version}`));
+  assert.ok(readme.includes(`pi install npm:${packageJson.name}@${packageJson.version}`));
 });
 
 test("contributing release docs avoid manual tag pushes", () => {
