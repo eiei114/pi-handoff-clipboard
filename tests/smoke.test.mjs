@@ -6,6 +6,7 @@ const packageJson = JSON.parse(await readFile(new URL("../package.json", import.
 const autoReleaseWorkflow = await readFile(new URL("../.github/workflows/auto-release.yml", import.meta.url), "utf8");
 const publishWorkflow = await readFile(new URL("../.github/workflows/publish.yml", import.meta.url), "utf8");
 const contributing = await readFile(new URL("../CONTRIBUTING.md", import.meta.url), "utf8");
+const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
 const releaseDocs = await readFile(new URL("../docs/release.md", import.meta.url), "utf8");
 
 test("package declares pi resources", () => {
@@ -23,6 +24,10 @@ test("package uses public publish config", () => {
 test("package identity matches repository", () => {
   assert.equal(packageJson.name, "pi-handoff-clipboard");
   assert.match(packageJson.repository.url, /eiei114\/pi-handoff-clipboard/);
+});
+
+test("README pinned install example tracks the package version", () => {
+  assert.match(readme, new RegExp(`pi install npm:${packageJson.name}@${packageJson.version}`));
 });
 
 test("contributing release docs avoid manual tag pushes", () => {
