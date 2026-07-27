@@ -2,10 +2,6 @@
 
 ## Unreleased
 
-All notable changes to this project will be documented in this file.
-
-This project follows semantic versioning.
-
 ## [0.1.3] - 2026-07-04
 
 ### Changed
