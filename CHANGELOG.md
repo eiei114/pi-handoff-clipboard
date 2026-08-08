@@ -2,6 +2,22 @@
 
 ## Unreleased
 
+## [0.1.5] - 2026-08-04
+
+### Changed
+
+- Add dotfield.xyz Discord community badge to README.
+- Align README pinned install example with the released package version.
+- Promote the 0.1.3 sponsor changelog entry and keep release docs in sync.
+- Bump GitHub Actions `setup-node` to v7 in CI and publish workflows.
+
+## [0.1.4] - 2026-07-21
+
+### Changed
+
+- Align CONTRIBUTING release push steps with the auto-release workflow.
+- Add npm publish investigation notes and refresh ROADMAP maintenance direction.
+
 ## [0.1.3] - 2026-07-04
 
 ### Changed
