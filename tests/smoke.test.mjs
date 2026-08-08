@@ -8,6 +8,7 @@ const publishWorkflow = await readFile(new URL("../.github/workflows/publish.yml
 const contributing = await readFile(new URL("../CONTRIBUTING.md", import.meta.url), "utf8");
 const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
 const releaseDocs = await readFile(new URL("../docs/release.md", import.meta.url), "utf8");
+const changelog = await readFile(new URL("../CHANGELOG.md", import.meta.url), "utf8");
 
 test("package declares pi resources", () => {
   assert.deepEqual(packageJson.pi.extensions, ["./extensions"]);
@@ -28,6 +29,11 @@ test("package identity matches repository", () => {
 
 test("README pinned install example tracks the package version", () => {
   assert.ok(readme.includes(`pi install npm:${packageJson.name}@${packageJson.version}`));
+});
+
+test("changelog documents the current package version", () => {
+  const versionHeading = `## [${packageJson.version}]`;
+  assert.ok(changelog.includes(versionHeading), `expected CHANGELOG to include ${versionHeading}`);
 });
 
 test("contributing release docs avoid manual tag pushes", () => {
