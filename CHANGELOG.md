@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.1.6] - 2026-08-22
+
+### Changed
+
+- Merge the 2026-08-22 managed OSS dependency and maintenance PR batch.
+
 ## [0.1.5] - 2026-08-04
 
 ### Changed
@@ -45,4 +51,3 @@
 - `/handoff:copy` clipboard-first command scaffold and tracked-session handoff generation modules.
 - Session-aware observed file and used-skill tracking for handoff prompt generation.
 - Initial OSS bootstrap for `pi-handoff-clipboard`.
-
