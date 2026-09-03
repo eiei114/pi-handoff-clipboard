@@ -131,6 +131,8 @@ npm install
 npm run ci
 ```
 
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for project layout and testing details.
+
 Main checks:
 
 - `npm run typecheck`
