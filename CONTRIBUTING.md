@@ -23,11 +23,21 @@ pi -e .
 | `lib/` | Session context, observed-file tracking, skill tracking, and prompt formatting helpers |
 | `tests/` | Regression tests run with Node's built-in test runner (`*.test.mjs`) |
 | `docs/` | Maintainer docs (release checklist, investigations) |
-| `skills/` | Scaffold sample Agent Skill (`example-skill/`) for local Pi discovery testing |
-| `prompts/` | Scaffold sample prompt template (`example.md`) |
-| `themes/` | Scaffold sample theme JSON (`example-theme.json`) |
+| `skills/` | Scaffold sample Agent Skill (see [Scaffold samples](#scaffold-samples)) |
+| `prompts/` | Scaffold sample prompt template (see [Scaffold samples](#scaffold-samples)) |
+| `themes/` | Scaffold sample theme JSON (see [Scaffold samples](#scaffold-samples)) |
 
-The scaffold sample directories (`skills/`, `prompts/`, `themes/`) are for local development only and are not included in the published npm package.
+## Scaffold samples
+
+The `prompts/`, `skills/`, and `themes/` directories are local-only Pi discovery samples. They let you exercise Pi package scaffolding with `pi -e .` without publishing, and they are intentionally excluded from the npm tarball (`package.json` `files`).
+
+| Path | Sample file | Purpose |
+|---|---|---|
+| `prompts/` | `example.md` | Example prompt template for local Pi discovery |
+| `skills/` | `example-skill/SKILL.md` | Example Agent Skill for local skill discovery testing |
+| `themes/` | `example-theme.json` | Example theme JSON for local theme discovery testing |
+
+Do not expect these directories in a published `npm install`; edit them freely for local development only.
 
 ## Testing
 
