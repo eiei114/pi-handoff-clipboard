@@ -131,7 +131,7 @@ npm install
 npm run ci
 ```
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md) for project layout and testing details.
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for project layout, scaffold samples, and testing details.
 
 Main checks:
 
