@@ -109,9 +109,26 @@ function collectPathsFromUnknown(value: unknown, cwd: string, out: string[], see
 
 function collectPathsFromText(text: string, cwd: string, out: string[], seen: Set<string>): void {
   const lineMatchRegex = /^([^:\n]+\.[a-zA-Z0-9]+):(\d+)(?::|\b)/u;
+  let start = 0;
 
-  for (const line of text.split(/\r?\n/u)) {
-    const match = line.trim().match(lineMatchRegex);
+  while (start < text.length) {
+    let end = text.indexOf("\n", start);
+    if (end === -1) {
+      end = text.length;
+    }
+
+    let line = text.slice(start, end);
+    if (line.endsWith("\r")) {
+      line = line.slice(0, -1);
+    }
+    start = end + 1;
+
+    if (line.length === 0 || !line.includes(":") || !line.includes(".")) {
+      continue;
+    }
+
+    line = line.trim();
+    const match = line.match(lineMatchRegex);
     if (!match?.[1]) {
       continue;
     }
