@@ -46,6 +46,30 @@ test("collectObservedFiles returns empty list when no tracked evidence exists", 
   assert.deepEqual(result, []);
 });
 
+test("extractObservedPathsFromToolResult scans CRLF grep output without splitting lines", () => {
+  const result = extractObservedPathsFromToolResult(
+    "grep",
+    {},
+    [{ type: "text", text: "src/a.ts:1: match\r\nsrc/b.ts:2: match" }],
+    "C:/repo",
+  );
+
+  assert.deepEqual(result, ["src/a.ts", "src/b.ts"]);
+});
+
+test("extractObservedPathsFromToolResult handles large grep output efficiently", () => {
+  const text = Array.from({ length: 10_000 }, (_, index) => `src/file-${index % 25}.ts:${index + 1}: match`).join(
+    "\n",
+  );
+
+  const started = performance.now();
+  const result = extractObservedPathsFromToolResult("grep", {}, [{ type: "text", text }], "C:/repo");
+  const elapsedMs = performance.now() - started;
+
+  assert.equal(result.length, 25);
+  assert.ok(elapsedMs < 50, `expected large grep scan under 50ms, got ${elapsedMs.toFixed(2)}ms`);
+});
+
 test("collectObservedFiles deduplicates recorded entries", () => {
   const result = collectObservedFiles(
     [

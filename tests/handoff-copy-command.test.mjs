@@ -84,6 +84,35 @@ test("runHandoffCopyCommand stops when generation is cancelled", async () => {
   assert.deepEqual(notifications, [{ message: "Cancelled", level: "info" }]);
 });
 
+test("runHandoffCopyCommand reads the session branch once per invocation", async () => {
+  let branchReads = 0;
+  const branch = [
+    {
+      type: "message",
+      id: "1",
+      parentId: null,
+      timestamp: "2026-06-09T00:00:00.000Z",
+      message: { role: "user", content: "continue the refactor", timestamp: 1 },
+    },
+  ];
+
+  const { context } = createContext({
+    sessionManager: {
+      getBranch: () => {
+        branchReads += 1;
+        return branch;
+      },
+    },
+  });
+
+  await runHandoffCopyCommand("", context, {
+    generatePrompt: async () => "## Context\nA",
+    copyToClipboard: async () => {},
+  });
+
+  assert.equal(branchReads, 1);
+});
+
 test("runHandoffCopyCommand rejects empty conversation context", async () => {
   const { context, notifications } = createContext({
     sessionManager: { getBranch: () => [] },
