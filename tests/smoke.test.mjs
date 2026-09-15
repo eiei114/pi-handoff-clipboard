@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -53,6 +54,44 @@ test("template includes npm release workflow handoff", () => {
   assert.match(publishWorkflow, /id-token:\s*write/);
   assert.match(publishWorkflow, /workflow_dispatch:/);
   assert.match(publishWorkflow, /npm publish --access public/);
+});
+
+const SCAFFOLD_SAMPLE_PATHS = [
+  "../prompts/example.md",
+  "../skills/example-skill/SKILL.md",
+  "../themes/example-theme.json",
+];
+
+test("scaffold sample files exist for local Pi discovery", async () => {
+  await Promise.all(
+    SCAFFOLD_SAMPLE_PATHS.map(async (relativePath) => {
+      const content = await readFile(new URL(relativePath, import.meta.url), "utf8");
+      assert.ok(content.trim().length > 0, `expected non-empty scaffold sample at ${relativePath}`);
+    }),
+  );
+});
+
+test("published package manifest excludes scaffold sample directories", () => {
+  const publishedFiles = packageJson.files;
+
+  for (const directory of ["prompts", "skills", "themes"]) {
+    assert.ok(
+      !publishedFiles.some((entry) => entry === directory || entry.startsWith(`${directory}/`)),
+      `expected package files to exclude ${directory}/ scaffold samples`,
+    );
+  }
+});
+
+test("npm pack dry-run excludes scaffold sample directories", () => {
+  const packOutput = execSync("npm pack --dry-run", {
+    cwd: new URL("..", import.meta.url),
+    encoding: "utf8",
+    shell: true,
+  });
+
+  for (const directory of ["prompts/", "skills/", "themes/"]) {
+    assert.doesNotMatch(packOutput, new RegExp(`\\n${directory.replace("/", "\\/")}`));
+  }
 });
 
 test("extension registers the clipboard handoff command", async () => {

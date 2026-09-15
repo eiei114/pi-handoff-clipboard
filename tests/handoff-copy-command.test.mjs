@@ -127,3 +127,58 @@ test("runHandoffCopyCommand rejects empty conversation context", async () => {
     { message: "No conversation context available to hand off", level: "error" },
   ]);
 });
+
+test("runHandoffCopyCommand rejects non-interactive contexts", async () => {
+  const { context, notifications } = createContext({ hasUI: false });
+  let generateCalled = false;
+
+  await runHandoffCopyCommand("", context, {
+    generatePrompt: async () => {
+      generateCalled = true;
+      return "## Context\nA";
+    },
+    copyToClipboard: async () => {},
+  });
+
+  assert.equal(generateCalled, false);
+  assert.deepEqual(notifications, [
+    { message: "/handoff:copy requires interactive or RPC UI support", level: "error" },
+  ]);
+});
+
+test("runHandoffCopyCommand rejects missing model selection", async () => {
+  const { context, notifications } = createContext({ model: null });
+  let generateCalled = false;
+
+  await runHandoffCopyCommand("", context, {
+    generatePrompt: async () => {
+      generateCalled = true;
+      return "## Context\nA";
+    },
+    copyToClipboard: async () => {},
+  });
+
+  assert.equal(generateCalled, false);
+  assert.deepEqual(notifications, [
+    { message: "Select a model before running /handoff:copy", level: "error" },
+  ]);
+});
+
+test("runHandoffCopyCommand surfaces generation failures without copying", async () => {
+  const { context, notifications } = createContext();
+  let copied = false;
+
+  await runHandoffCopyCommand("", context, {
+    generatePrompt: async () => {
+      throw new Error("model timeout");
+    },
+    copyToClipboard: async () => {
+      copied = true;
+    },
+  });
+
+  assert.equal(copied, false);
+  assert.equal(notifications.length, 1);
+  assert.equal(notifications[0].level, "error");
+  assert.match(notifications[0].message, new RegExp(`${CLIPBOARD_HANDOFF_FAILED_PREFIX} model timeout`));
+});
