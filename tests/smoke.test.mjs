@@ -83,14 +83,18 @@ test("published package manifest excludes scaffold sample directories", () => {
 });
 
 test("npm pack dry-run excludes scaffold sample directories", () => {
-  const packOutput = execSync("npm pack --dry-run", {
+  const packOutput = execSync("npm pack --dry-run --json", {
     cwd: new URL("..", import.meta.url),
     encoding: "utf8",
     shell: true,
   });
+  const packedPaths = JSON.parse(packOutput)[0].files.map((file) => file.path);
 
   for (const directory of ["prompts/", "skills/", "themes/"]) {
-    assert.doesNotMatch(packOutput, new RegExp(`\\n${directory.replace("/", "\\/")}`));
+    assert.ok(
+      !packedPaths.some((path) => path.startsWith(directory)),
+      `expected dry-run tarball to exclude ${directory} scaffold samples`,
+    );
   }
 });
 
