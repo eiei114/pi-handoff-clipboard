@@ -123,6 +123,7 @@ Pi immediately puts a prompt like this onto your clipboard:
 | `extensions/` | Pi extension entrypoint |
 | `lib/` | Session context, observed-file tracking, skill tracking, and prompt formatting helpers |
 | `docs/release.md` | Release and publish notes |
+| `docs/architecture.md` | `/handoff:copy` architecture and data flow |
 
 ## Development
 
