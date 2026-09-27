@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
 const autoReleaseWorkflow = await readFile(new URL("../.github/workflows/auto-release.yml", import.meta.url), "utf8");
@@ -84,7 +85,7 @@ test("published package manifest excludes scaffold sample directories", () => {
 
 test("npm pack dry-run excludes scaffold sample directories", () => {
   const packOutput = execSync("npm pack --dry-run --json", {
-    cwd: new URL("..", import.meta.url),
+    cwd: fileURLToPath(new URL("..", import.meta.url)),
     encoding: "utf8",
     shell: true,
   });
