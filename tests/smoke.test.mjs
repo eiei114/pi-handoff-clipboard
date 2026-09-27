@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
 function parseNpmPackDryRun(output) {
   const start = output.indexOf("[");
-  if (start === -1) {
+  const end = output.lastIndexOf("]");
+  if (start === -1 || end === -1 || end <= start) {
     throw new Error("npm pack --dry-run --json did not return JSON");
   }
-  return JSON.parse(output.slice(start));
+  return JSON.parse(output.slice(start, end + 1));
 }
 
 import { readFile } from "node:fs/promises";
