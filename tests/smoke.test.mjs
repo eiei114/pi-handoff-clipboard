@@ -1,5 +1,13 @@
 import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
+function parseNpmPackDryRun(output) {
+  const start = output.indexOf("[");
+  if (start === -1) {
+    throw new Error("npm pack --dry-run --json did not return JSON");
+  }
+  return JSON.parse(output.slice(start));
+}
+
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -87,9 +95,8 @@ test("npm pack dry-run excludes scaffold sample directories", () => {
   const packOutput = execSync("npm pack --dry-run --json", {
     cwd: fileURLToPath(new URL("..", import.meta.url)),
     encoding: "utf8",
-    shell: true,
-  });
-  const packedPaths = JSON.parse(packOutput)[0].files.map((file) => file.path);
+    });
+  const packedPaths = parseNpmPackDryRun(packOutput)[0].files.map((file) => file.path);
 
   for (const directory of ["prompts/", "skills/", "themes/"]) {
     assert.ok(
