@@ -1,12 +1,46 @@
 import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
 function parseNpmPackDryRun(output) {
-  const start = output.indexOf("[");
-  const end = output.lastIndexOf("]");
-  if (start === -1 || end === -1 || end <= start) {
-    throw new Error("npm pack --dry-run --json did not return JSON");
+  for (let start = output.indexOf("["); start !== -1; start = output.indexOf("[", start + 1)) {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+
+    for (let end = start; end < output.length; end += 1) {
+      const character = output[end];
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (character === "\\") {
+          escaped = true;
+        } else if (character === '"') {
+          inString = false;
+        }
+        continue;
+      }
+
+      if (character === '"') {
+        inString = true;
+      } else if (character === "[") {
+        depth += 1;
+      } else if (character === "]") {
+        depth -= 1;
+        if (depth === 0) {
+          try {
+            const parsed = JSON.parse(output.slice(start, end + 1));
+            if (Array.isArray(parsed) && Array.isArray(parsed[0]?.files)) {
+              return parsed;
+            }
+          } catch {
+            // Continue searching: npm may include bracketed non-JSON output.
+          }
+          break;
+        }
+      }
+    }
   }
-  return JSON.parse(output.slice(start, end + 1));
+
+  throw new Error("npm pack --dry-run --json did not include a valid package array");
 }
 
 import { readFile } from "node:fs/promises";
@@ -20,6 +54,12 @@ const contributing = await readFile(new URL("../CONTRIBUTING.md", import.meta.ur
 const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
 const releaseDocs = await readFile(new URL("../docs/release.md", import.meta.url), "utf8");
 const changelog = await readFile(new URL("../CHANGELOG.md", import.meta.url), "utf8");
+
+test("npm pack dry-run parser ignores surrounding bracketed output", () => {
+  const packResult = [{ files: [{ path: "package.json" }] }];
+  const output = `npm warning [diagnostic]\n${JSON.stringify(packResult)}\nextra [metadata]`;
+  assert.deepEqual(parseNpmPackDryRun(output), packResult);
+});
 
 test("package declares pi resources", () => {
   assert.deepEqual(packageJson.pi.extensions, ["./extensions"]);
