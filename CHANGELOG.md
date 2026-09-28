@@ -4,17 +4,9 @@ All notable changes to this project will be documented in this file.
 
 This project follows semantic versioning.
 
-## Unreleased
-
 ## [0.1.11] - 2026-09-27
 
 - chore: periodic patch bump after 7+ days without npm publish
-
-
-
-
-
-## Unreleased
 ## [0.1.10] - 2026-09-28
 
 - chore: periodic patch bump after 7+ days without npm publish
@@ -70,3 +62,5 @@ This project follows semantic versioning.
 - `/handoff:copy` clipboard-first command scaffold and tracked-session handoff generation modules.
 - Session-aware observed file and used-skill tracking for handoff prompt generation.
 - Initial OSS bootstrap for `pi-handoff-clipboard`.
+## Unreleased
+
