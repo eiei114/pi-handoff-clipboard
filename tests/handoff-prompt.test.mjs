@@ -32,3 +32,17 @@ test("normalizeGeneratedPrompt removes empty suggested-skills sections", () => {
   const normalized = normalizeGeneratedPrompt(`## Context\nA\n\n## Suggested skills\n\n## Task\nB`);
   assert.equal(normalized, "## Context\nA\n\n## Task\nB");
 });
+
+test("buildGenerationMessage survives serialization and restoration with no suggested skills", () => {
+  const payload = buildGenerationMessage({
+    conversationText: "history",
+    observedFiles: [],
+    suggestedSkills: [],
+  });
+
+  const restored = JSON.parse(JSON.stringify(payload));
+
+  assert.deepEqual(restored, payload);
+  assert.match(restored.content[0].text, /No observed files captured in this session/);
+  assert.match(restored.content[0].text, /\(omit the section\)/);
+});
