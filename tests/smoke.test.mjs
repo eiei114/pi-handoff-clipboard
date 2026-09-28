@@ -1,15 +1,12 @@
 import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
 function parseNpmPackDryRun(output) {
-  const line = output
-    .split("\n")
-    .map((entry) => entry.replace(/\r$/, "").trim())
-    .filter((entry) => entry.startsWith("["))
-    .pop();
-  if (!line) {
+  const start = output.indexOf("[");
+  const end = output.lastIndexOf("]");
+  if (start === -1 || end === -1 || end <= start) {
     throw new Error("npm pack --dry-run --json did not return JSON");
   }
-  return JSON.parse(line);
+  return JSON.parse(output.slice(start, end + 1));
 }
 
 import { readFile } from "node:fs/promises";
