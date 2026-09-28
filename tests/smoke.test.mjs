@@ -2,9 +2,8 @@ import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
 function parseNpmPackDryRun(output) {
   const line = output
-    .split("
-")
-    .map((entry) => entry.replace(/$/, "").trim())
+    .split("\n")
+    .map((entry) => entry.replace(/\r$/, "").trim())
     .filter((entry) => entry.startsWith("["))
     .pop();
   if (!line) {
