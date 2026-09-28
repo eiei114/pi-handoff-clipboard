@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { execSync } from "node:child_process";
 function parseNpmPackDryRun(output) {
-  for (let start = output.indexOf("["); start !== -1; start = output.indexOf("[", start + 1)) {
-    let depth = 0;
+  for (let start = output.search(/[\[{]/); start !== -1; ) {
+    const closing = [];
     let inString = false;
     let escaped = false;
 
@@ -22,14 +22,23 @@ function parseNpmPackDryRun(output) {
       if (character === '"') {
         inString = true;
       } else if (character === "[") {
-        depth += 1;
-      } else if (character === "]") {
-        depth -= 1;
-        if (depth === 0) {
+        closing.push("]");
+      } else if (character === "{") {
+        closing.push("}");
+      } else if (character === "]" || character === "}") {
+        if (closing.pop() === character && closing.length === 0) {
           try {
             const parsed = JSON.parse(output.slice(start, end + 1));
-            if (Array.isArray(parsed) && Array.isArray(parsed[0]?.files)) {
-              return parsed;
+            const results = Array.isArray(parsed)
+              ? parsed
+              : parsed && typeof parsed === "object"
+                ? Array.isArray(parsed.files)
+                  ? [parsed]
+                  : Object.values(parsed)
+                : [];
+            const packages = results.filter((entry) => Array.isArray(entry?.files));
+            if (packages.length > 0) {
+              return packages;
             }
           } catch {
             // Continue searching: npm may include bracketed non-JSON output.
@@ -38,6 +47,9 @@ function parseNpmPackDryRun(output) {
         }
       }
     }
+
+    const nextStart = output.slice(start + 1).search(/[\[{]/);
+    start = nextStart === -1 ? -1 : start + nextStart + 1;
   }
 
   throw new Error("npm pack --dry-run --json did not include a valid package array");
@@ -55,10 +67,13 @@ const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
 const releaseDocs = await readFile(new URL("../docs/release.md", import.meta.url), "utf8");
 const changelog = await readFile(new URL("../CHANGELOG.md", import.meta.url), "utf8");
 
-test("npm pack dry-run parser ignores surrounding bracketed output", () => {
-  const packResult = [{ files: [{ path: "package.json" }] }];
-  const output = `npm warning [diagnostic]\n${JSON.stringify(packResult)}\nextra [metadata]`;
-  assert.deepEqual(parseNpmPackDryRun(output), packResult);
+test("npm pack dry-run parser handles npm 12 object output and npm 11 arrays", () => {
+  const packageResult = { files: [{ path: "package.json" }] };
+  const npm11Output = `npm warning [diagnostic]\n${JSON.stringify([packageResult])}\nextra [metadata]`;
+  const npm12Output = `npm warning [diagnostic]\n${JSON.stringify({ "pi-handoff-clipboard": packageResult })}\nextra [metadata]`;
+
+  assert.deepEqual(parseNpmPackDryRun(npm11Output), [packageResult]);
+  assert.deepEqual(parseNpmPackDryRun(npm12Output), [packageResult]);
 });
 
 test("package declares pi resources", () => {
