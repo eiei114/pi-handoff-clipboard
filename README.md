@@ -58,7 +58,7 @@ pi install npm:@your-scope/your-pi-package
 Pin a specific version when you want reproducible installs:
 
 ```bash
-pi install npm:pi-handoff-clipboard@0.1.11
+pi install npm:pi-handoff-clipboard@0.1.12
 ```
 
 Install into the current project instead of your user Pi settings:
