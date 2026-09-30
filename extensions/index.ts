@@ -1,4 +1,4 @@
-import { complete } from "@earendil-works/pi-ai";
+import { complete } from "@earendil-works/pi-ai/compat";
 import {
   BorderedLoader,
   copyToClipboard,
