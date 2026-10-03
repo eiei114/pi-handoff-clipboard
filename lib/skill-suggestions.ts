@@ -1,20 +1,7 @@
 import type { SessionEntry } from "@earendil-works/pi-coding-agent";
+import { pushUnique } from "./unique-values.ts";
 
 export const SKILL_USAGE_ENTRY_TYPE = "pi-handoff-clipboard:skill-use";
-
-function pushUnique(values: string[], seen: Set<string>, value: string | undefined): void {
-  if (!value) {
-    return;
-  }
-
-  const normalized = value.trim();
-  if (!normalized || seen.has(normalized)) {
-    return;
-  }
-
-  seen.add(normalized);
-  values.push(normalized);
-}
 
 export function parseSkillCommand(text: string): string | undefined {
   const trimmed = text.trim();
@@ -43,7 +30,7 @@ export function collectUsedSkills(branch: SessionEntry[]): string[] {
           ? entry.data.skillName
           : undefined;
 
-      pushUnique(skills, seen, typeof skillName === "string" ? skillName : undefined);
+      pushUnique(skills, seen, typeof skillName === "string" ? skillName : undefined, (value) => value.trim());
       continue;
     }
 
@@ -53,13 +40,13 @@ export function collectUsedSkills(branch: SessionEntry[]): string[] {
 
     const content = entry.message.content;
     if (typeof content === "string") {
-      pushUnique(skills, seen, parseSkillCommand(content));
+      pushUnique(skills, seen, parseSkillCommand(content), (value) => value.trim());
       continue;
     }
 
     for (const block of content) {
       if (block.type === "text") {
-        pushUnique(skills, seen, parseSkillCommand(block.text));
+        pushUnique(skills, seen, parseSkillCommand(block.text), (value) => value.trim());
       }
     }
   }

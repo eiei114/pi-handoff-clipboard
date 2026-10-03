@@ -24,6 +24,21 @@ test("collectUsedSkills ignores non-skill user messages", () => {
   assert.deepEqual(result, []);
 });
 
+test("collectUsedSkills trims explicit recorded skill names", () => {
+  const result = collectUsedSkills([
+    {
+      type: "custom",
+      id: "1",
+      parentId: null,
+      timestamp: "2026-06-09T00:00:00.000Z",
+      customType: SKILL_USAGE_ENTRY_TYPE,
+      data: { skillName: "  pi-oss-bootstrap  " },
+    },
+  ]);
+
+  assert.deepEqual(result, ["pi-oss-bootstrap"]);
+});
+
 test("collectUsedSkills prefers explicit recorded skills and deduplicates", () => {
   const result = collectUsedSkills([
     {
