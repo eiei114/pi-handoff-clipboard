@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { SessionEntry } from "@earendil-works/pi-coding-agent";
+import { pushUnique } from "./unique-values.ts";
 
 export const OBSERVED_FILES_ENTRY_TYPE = "pi-handoff-clipboard:observed-files";
 
@@ -56,15 +57,6 @@ function normalizeObservedPath(rawPath: string, cwd: string): string | undefined
 
   const normalized = toPosix(path.normalize(trimmed));
   return normalized.replace(/^\.\//u, "");
-}
-
-function pushUnique(target: string[], seen: Set<string>, value: string | undefined): void {
-  if (!value || seen.has(value)) {
-    return;
-  }
-
-  seen.add(value);
-  target.push(value);
 }
 
 function collectPathsFromUnknown(value: unknown, cwd: string, out: string[], seen: Set<string>, depth = 0): void {
