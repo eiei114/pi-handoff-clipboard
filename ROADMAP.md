@@ -12,7 +12,9 @@ are targets, and any user-facing change still follows the
 | Item | Value |
 |---|---|
 | npm package | [`pi-handoff-clipboard`](https://www.npmjs.com/package/pi-handoff-clipboard) |
-| Latest version | **0.1.6** (GitHub release `v0.1.6`, 2026-08-22) |
+| Latest version | **0.1.12** (GitHub release `v0.1.12`, 2026-09-30) |
+| Roadmap reviewed | 2026-10-05 |
+| Current revision | `2def4b8` (shared unique-value collection helper) |
 | Single command | `/handoff:copy` (clipboard-first) |
 | Release mechanism | npm Trusted Publishing via GitHub Actions |
 | CI gates | `npm run typecheck`, `node --test tests/*.test.mjs`, `npm pack --dry-run` |
@@ -21,12 +23,14 @@ are targets, and any user-facing change still follows the
 
 ### Recent releases
 
-- **0.1.6** (2026-08-22) — merged managed OSS dependency and maintenance PR
-  batch (TypeScript 7, `@types/node`, and related dev-dependency updates). No
+- **0.1.12** (2026-09-30) — updated the Pi SDK dependencies to 0.99.1. No
   behavior change.
+- **0.1.7–0.1.11** (2026-09-27–2026-09-28) — periodic patch releases that kept
+  the npm package publishing cadence current. No intentional behavior change.
+- **0.1.6** (2026-08-22) — merged the managed OSS dependency and maintenance
+  batch. No behavior change.
 - **0.1.5** (2026-08-04) — Discord community badge, README pinned-install
-  alignment, promoted 0.1.3 changelog entry, GitHub Actions `setup-node` v7
-  bump. No behavior change.
+  alignment, and GitHub Actions `setup-node` v7 bump. No behavior change.
 - **0.1.4** (2026-07-21) — CONTRIBUTING release steps aligned with
   auto-release workflow; npm publish investigation notes; ROADMAP maintenance
   direction refresh. No behavior change.
@@ -70,10 +74,10 @@ clipboard.
 These are planning targets for maintenance releases. v1 behavior stays
 clipboard-first; no feature is committed until a maintainer opens it.
 
-- **v0.1.7 — docs & test depth (maintenance, no behavior change).** Add an
-  architecture/data-flow doc, expand observed-file recovery regression tests,
-  and record the clipboard-failure decision. Ships only after `npm run ci` is
-  green and `npm pack --dry-run` is unchanged.
+- **Next maintenance release — test and documentation depth (no behavior
+  change).** Extend observed-file recovery coverage and keep release-only patch
+  bumps clearly documented. Ship only after `npm run ci` is green and
+  `npm pack --dry-run` is unchanged.
 - **v0.2.x — only if a maintainer opens it.** Revisit the clipboard-failure
   fallback and/or optional markdown export listed under
   [Future directions](#future-directions). These intentionally stayed out of v1
@@ -84,13 +88,13 @@ clipboard-first; no feature is committed until a maintainer opens it.
 Bounded items suitable for 30–90 minute micro-seeds. Each is intentionally small
 and does not change shipped behavior unless stated.
 
-- **Thin dev docs.** `docs/` ships `release.md` and one investigation note;
-  there is no architecture or data-flow doc explaining how `/handoff:copy`
-  assembles a prompt end-to-end.
-- **Observed-file recovery coverage.** The `OBSERVED_FILES_ENTRY_TYPE`
-  custom-entry recovery path and compacted-branch tool-result recovery are only
-  lightly tested; edge cases for sessions started before the extension was
-  installed remain best-effort.
+- **Observed-file recovery depth.** The `OBSERVED_FILES_ENTRY_TYPE` custom-entry
+  recovery path and compacted-branch tool-result recovery are covered by basic
+  tests, but sessions started before the extension was installed remain
+  best-effort and could use additional malformed/legacy-entry cases.
+- **Release cadence noise.** Periodic patch bumps can make the latest package
+  version advance without a corresponding behavior change; keep the changelog
+  and roadmap explicit about maintenance-only releases.
 - **Clipboard-failure UX.** v1 has no file/editor fallback on clipboard failure
   (a documented limitation). No code change is planned; a decision record would
   capture the rationale and future options.
@@ -123,24 +127,21 @@ Candidate micro-tasks for the weekly maintenance planner. Each is scoped to
 30–90 minutes with explicit acceptance criteria. Pick one per seed slot; do not
 bundle unless the seeds are clearly the same change.
 
-### S1: Add architecture / data-flow doc
+### S1: Extend observed-file recovery regression tests
 
-Add `docs/architecture.md` describing the `/handoff:copy` data flow:
-`sessionManager.getBranch()` → `getHandoffMessages` / `collectObservedFiles` /
-`collectUsedSkills` → `generatePrompt` → clipboard, including the
-`OBSERVED_FILES_ENTRY_TYPE` recovery entry and tracked tool names. Link it from
-the README `Package contents` table.
+Extend `tests/observed-files.test.mjs` with focused malformed and legacy-entry
+cases around `OBSERVED_FILES_ENTRY_TYPE`, plus a compacted branch where only
+tracked tool results carry paths. Keep the implementation unchanged.
 
 - **Size:** ~45–75 minutes
-- **Why needed:** `docs/` only has release notes today; new contributors cannot
-  trace how session data becomes a handoff prompt without reading all of `lib/`.
-- **Scope:** new `docs/architecture.md` + README link
+- **Why needed:** recovery is best-effort and silently affects handoff quality
+  for sessions created before the extension was installed or after compaction.
+- **Scope:** `tests/observed-files.test.mjs` only
 - **Acceptance criteria**
-  - [ ] `docs/architecture.md` documents the end-to-end flow and the recovery
-    entry type
-  - [ ] all referenced symbols match current `lib/` source
-  - [ ] README `Package contents` links to the new doc
+  - [ ] custom-entry and compacted-branch cases cover the current fallback rules
+  - [ ] malformed entries do not make collection fail
   - [ ] `npm run ci` passes
+  - [ ] no changes to `lib/` behavior
 
 ### S2: Regression tests for observed-file recovery
 
@@ -176,22 +177,22 @@ and the future options (temp file, editor preview). Link from
   - [ ] options list matches the README `Limitations` section
   - [ ] no code or published-file changes
 
-### S4: Document scaffold sample directories
+### S4: Audit release-only version bumps
 
-Add a short `## Scaffold samples` subsection to `CONTRIBUTING.md` explaining
-that `prompts/`, `skills/`, and `themes/` are local-only Pi discovery samples
-and are intentionally excluded from the npm tarball. Cross-link from README if
-helpful.
+Review the periodic patch-release workflow and document how a maintenance-only
+version bump should be reflected in `CHANGELOG.md`, `ROADMAP.md`, and package
+metadata. Do not alter the publish workflow or bump a version as part of this
+seed.
 
-- **Size:** ~30 minutes
-- **Why needed:** the sample dirs look like shipped package content but are not
-  in `package.json` `files`; without a label, contributors may edit or expect
-  them in published installs.
-- **Scope:** `CONTRIBUTING.md` (+ optional README cross-link)
+- **Size:** ~30–45 minutes
+- **Why needed:** recent 0.1.7–0.1.11 releases were cadence bumps without
+  behavior changes, so the maintenance history should remain easy to interpret.
+- **Scope:** release documentation only
 - **Acceptance criteria**
-  - [ ] CONTRIBUTING explains the three scaffold dirs and their local-only status
+  - [ ] the policy distinguishes cadence bumps from behavior releases
+  - [ ] the policy names the source of truth for the latest version
   - [ ] `npm run ci` passes
-  - [ ] no published file changes (docs are not in `files`)
+  - [ ] no package publish or version change
 
 ### S5: Triage npm audit dev-dependency advisories
 
@@ -217,4 +218,6 @@ These were picked up in prior maintenance cycles and are kept for traceability.
 | Promote CHANGELOG to 0.1.3 | Done in 0.1.5 | [`CHANGELOG.md`](CHANGELOG.md) |
 | Triage open Dependabot PRs | Merged in 0.1.6 batch | PRs #39, #40 |
 | Expand CONTRIBUTING layout & testing | Done | PR #42 (DOT-1699) |
+| Add architecture / data-flow doc | Done | `docs/architecture.md`, PR #50 |
+| Document scaffold sample directories | Done | `CONTRIBUTING.md`, PR #44 |
 | Refresh ROADMAP to current release | Done | DOT-1000 |
