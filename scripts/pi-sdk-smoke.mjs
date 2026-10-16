@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import {
   behaviorAssertions,
+  createSmokeEnvironment,
   EXTENSION_LOAD_ERROR_PATTERN,
   parseJsonLines,
   parseOsc52Payloads,
@@ -49,12 +50,7 @@ const RPC_ARGS = [
   "pi-sdk-smoke/smoke-model",
 ];
 const agentDir = mkdtempSync(join(tmpdir(), "pi-sdk-smoke-"));
-const env = {
-  ...process.env,
-  PI_CODING_AGENT_DIR: agentDir,
-  PI_OFFLINE: "1",
-};
-delete env.OPENAI_API_KEY;
+const env = createSmokeEnvironment(process.env, agentDir, process.platform);
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const piPackageDir = resolve(root, "node_modules/@earendil-works/pi-coding-agent");
 const piManifest = readJson(resolve(piPackageDir, "package.json"));
