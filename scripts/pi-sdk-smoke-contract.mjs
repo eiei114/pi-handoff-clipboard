@@ -42,6 +42,21 @@ export function sanitizeLocalPaths(output, paths) {
   return sanitized;
 }
 
+export function createSmokeEnvironment(source, agentDirectory, platform) {
+  const env = {
+    ...source,
+    PI_CODING_AGENT_DIR: agentDirectory,
+    PI_OFFLINE: "1",
+  };
+  delete env.OPENAI_API_KEY;
+  if (platform === "linux") {
+    delete env.DISPLAY;
+    delete env.WAYLAND_DISPLAY;
+    delete env.TERMUX_VERSION;
+  }
+  return env;
+}
+
 function assertion(id, expected, observed, passed) {
   return { id, expected, observed: JSON.stringify(observed), passed: passed === true };
 }

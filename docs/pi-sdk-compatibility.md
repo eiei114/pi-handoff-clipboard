@@ -29,7 +29,10 @@ makes no external or paid model requests. It checks extension registration,
 Pi process's registration/feature response/shutdown, and native shell startup.
 The Windows smoke verifies the generated clipboard content and restores the
 previous plain-text clipboard state; Linux headless runs assert the actual OSC 52
-payload. Non-text Windows clipboard formats are never overwritten.
+payload. The Linux child clears inherited display/Termux variables so CI runners
+with a display variable still exercise that deterministic headless path; the
+host environment is not modified. Non-text Windows clipboard formats are never
+overwritten.
 
 Normal smoke runs do not modify the tracked report. After a successful run,
 explicitly record its output with:

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   behaviorAssertions,
+  createSmokeEnvironment,
   parseJsonLines,
   parseOsc52Payloads,
   sanitizeLocalPaths,
@@ -42,6 +43,29 @@ test("recorded evidence removes raw, slash-normalized, and JSON-escaped local pa
   const sanitized = sanitizeLocalPaths(evidence, [root]);
   assert.equal(sanitized.match(/<local-path>/g)?.length, 3);
   assert.doesNotMatch(sanitized, /C:\\Users\\private|C:\/Users\/private/);
+});
+
+test("Linux smoke isolates a deterministic headless clipboard boundary", () => {
+  const source = {
+    OPENAI_API_KEY: "must-not-leak",
+    DISPLAY: ":0",
+    WAYLAND_DISPLAY: "wayland-0",
+    TERMUX_VERSION: "test",
+    CI: "true",
+  };
+  const linux = createSmokeEnvironment(source, "/tmp/pi-sdk-smoke", "linux");
+  assert.equal(linux.PI_CODING_AGENT_DIR, "/tmp/pi-sdk-smoke");
+  assert.equal(linux.PI_OFFLINE, "1");
+  assert.equal(linux.CI, "true");
+  assert.equal(linux.OPENAI_API_KEY, undefined);
+  assert.equal(linux.DISPLAY, undefined);
+  assert.equal(linux.WAYLAND_DISPLAY, undefined);
+  assert.equal(linux.TERMUX_VERSION, undefined);
+  assert.equal(source.DISPLAY, ":0", "the host environment is not mutated");
+
+  const windows = createSmokeEnvironment(source, "C:\\temp\\pi-sdk-smoke", "win32");
+  assert.equal(windows.DISPLAY, ":0", "Windows retains its native environment");
+  assert.equal(windows.OPENAI_API_KEY, undefined);
 });
 
 test("extension registration requires the real namespaced command", () => {
