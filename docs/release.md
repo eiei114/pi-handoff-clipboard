@@ -1,73 +1,23 @@
-# Release
+# Release and publication hold
 
-This package uses npm Trusted Publishing with GitHub Actions OIDC.
+**Status: HELD.** Automated GitHub release/tag/npm publication and direct manual
+publication are unavailable until a separate owner-authorized setup establishes
+the required protected release boundary. No protected GitHub Environment or
+branch protection was verified for this repository, so this repository does not
+claim that a publication path is operational.
 
-Do not add `NPM_TOKEN` or long-lived npm tokens to GitHub Secrets.
+The former workflow entrypoints are retained for history under
+`.github/disabled-workflows/`; they are not active GitHub Actions workflows.
+Only `.github/workflows/` contains executable workflow entrypoints. Current
+code and version-bump PRs must pass CI and must not create tags/releases,
+dispatch a publish workflow, or publish to npm when merged.
 
-## One-time npm setup
+Do not create release tags or GitHub Releases, dispatch workflows, run a local
+`npm publish`, or add credentials/settings as a workaround. In particular,
+there is no OTP fallback. Package version changes in ordinary PRs prepare source
+metadata only; they are not release authorization.
 
-On npmjs.com, configure Trusted Publishing for this package:
-
-- Publisher: GitHub Actions
-- Repository: this GitHub repository
-- Workflow filename: `publish.yml`
-
-## Publish
-
-```bash
-npm version patch
-git push
-```
-
-On `main`, `.github/workflows/auto-release.yml` checks `package.json` version. If `v<version>` does not exist yet, it creates the tag, creates the GitHub Release, then explicitly dispatches `.github/workflows/publish.yml` for that tag.
-
-The `v*.*.*` tag also triggers `.github/workflows/publish.yml`, which runs CI and publishes to npm when tags are pushed manually.
-Publishing also runs when a GitHub Release is published, and can be run manually from GitHub Actions with `workflow_dispatch`.
-
-The workflow skips `name@version` if that exact package version already exists on npm.
-
-## Manual maintainer publish with OTP
-
-Use this only when you intentionally want a direct local publish instead of the normal GitHub Actions route.
-
-```bash
-npm run ci
-npm whoami
-npm publish --access public --otp=123456
-```
-
-Checks before running manual OTP publish:
-
-- `package.json` version is the version you want on npm
-- `CHANGELOG.md` is updated
-- `npm pack --dry-run` contains only intended files
-- npm package access is `public`
-
-## Workflow guardrail
-
-Do not ship a new Pi OSS package or version bump with only `package.json` changes.
-The repository must include the release workflow pair:
-
-- `.github/workflows/auto-release.yml` creates `v<version>` tags and GitHub Releases from `main` version bumps.
-- `.github/workflows/publish.yml` publishes to npm through Trusted Publishing.
-
-Important: tags or releases created by `GITHUB_TOKEN` do not reliably fan out into another workflow through normal `push.tags` or `release.published` triggers. The template keeps publishing reliable by having `auto-release.yml` explicitly dispatch `publish.yml` after creating the tag/release. If you change the release flow, keep one explicit handoff path: `workflow_dispatch` from auto-release, `repository_dispatch`, or `workflow_run` on the auto-release workflow.
-
-## GitHub Actions requirements
-
-- `permissions: id-token: write`
-- `permissions: actions: write` on auto-release so it can dispatch `publish.yml`
-- `auto-release.yml` must call `gh workflow run publish.yml --ref "$TAG" -f ref="$TAG"`, or `publish.yml` must have an equivalent explicit handoff trigger such as `workflow_run`
-- GitHub-hosted runner
-- Node.js 24, so the release job uses a current npm CLI for Trusted Publishing
-- No `NPM_TOKEN`
-- `npm publish` from the configured workflow file
-
-## First release checklist
-
-- [ ] `package.json` name is final
-- [ ] `repository.url` points to the real GitHub repository
-- [ ] npm Trusted Publisher is configured
-- [ ] `npm run ci` passes
-- [ ] `npm pack --dry-run` contains only intended files
-- [ ] CHANGELOG.md has the release date
+Re-enabling publication requires a separately authorized change that establishes
+and verifies the external trust boundary first, followed by independently
+reviewed workflow changes and regression tests. Until then, release is blocked
+by policy, not by CI.

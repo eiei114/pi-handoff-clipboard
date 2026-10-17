@@ -55,17 +55,20 @@ function parseNpmPackDryRun(output) {
   throw new Error("npm pack --dry-run --json did not include a valid package array");
 }
 
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-const autoReleaseWorkflow = await readFile(new URL("../.github/workflows/auto-release.yml", import.meta.url), "utf8");
-const publishWorkflow = await readFile(new URL("../.github/workflows/publish.yml", import.meta.url), "utf8");
 const contributing = await readFile(new URL("../CONTRIBUTING.md", import.meta.url), "utf8");
 const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
 const releaseDocs = await readFile(new URL("../docs/release.md", import.meta.url), "utf8");
 const changelog = await readFile(new URL("../CHANGELOG.md", import.meta.url), "utf8");
+const workflowDirectory = new URL("../.github/workflows/", import.meta.url);
+const activeWorkflowFiles = (await readdir(workflowDirectory)).filter((file) => /\.ya?ml$/i.test(file));
+const activeWorkflowSources = await Promise.all(
+  activeWorkflowFiles.map(async (file) => [file, await readFile(new URL(file, workflowDirectory), "utf8")]),
+);
 
 test("npm pack dry-run parser handles npm 12 object output and npm 11 arrays", () => {
   const packageResult = { files: [{ path: "package.json" }] };
@@ -93,8 +96,9 @@ test("package identity matches repository", () => {
   assert.match(packageJson.repository.url, /eiei114\/pi-handoff-clipboard/);
 });
 
-test("README pinned install example tracks the package version", () => {
-  assert.ok(readme.includes(`pi install npm:${packageJson.name}@${packageJson.version}`));
+test("README pins the last published package version, not the prepared release hold", () => {
+  assert.ok(readme.includes(`pi install npm:${packageJson.name}@0.1.12`));
+  assert.ok(!readme.includes(`pi install npm:${packageJson.name}@${packageJson.version}`));
 });
 
 test("changelog documents the current package version", () => {
@@ -102,23 +106,40 @@ test("changelog documents the current package version", () => {
   assert.ok(changelog.includes(versionHeading), `expected CHANGELOG to include ${versionHeading}`);
 });
 
-test("contributing release docs avoid manual tag pushes", () => {
-  assert.match(contributing, /npm version patch/);
-  assert.match(contributing, /^git push$/m);
-  assert.doesNotMatch(contributing, /--follow-tags/);
-  assert.doesNotMatch(contributing, /^git push --/m);
-  assert.doesNotMatch(contributing, /^git push origin/m);
-  assert.match(releaseDocs, /auto-release\.yml/);
-  assert.match(releaseDocs, /gh workflow run publish\.yml/);
+test("release documentation describes a fail-closed hold without a manual publish path", () => {
+  assert.match(contributing, /Publication is on hold/);
+  assert.doesNotMatch(contributing, /^\s*npm publish(?:\s|$)/m);
+  assert.match(releaseDocs, /Status: HELD/);
+  assert.match(releaseDocs, /owner-authorized/);
+  assert.doesNotMatch(readme, /npm publish|Trusted Publishing/);
 });
 
-test("template includes npm release workflow handoff", () => {
-  assert.match(autoReleaseWorkflow, /actions:\s*write/);
-  assert.match(autoReleaseWorkflow, /contents:\s*write/);
-  assert.match(autoReleaseWorkflow, /gh workflow run publish\.yml/);
-  assert.match(publishWorkflow, /id-token:\s*write/);
-  assert.match(publishWorkflow, /workflow_dispatch:/);
-  assert.match(publishWorkflow, /npm publish --access public/);
+test("active GitHub workflows cannot release, dispatch, or publish", async () => {
+  assert.ok(activeWorkflowFiles.includes("ci.yml"));
+  assert.ok(!activeWorkflowFiles.includes("auto-release.yml"));
+  assert.ok(!activeWorkflowFiles.includes("publish.yml"));
+
+  for (const [file, source] of activeWorkflowSources) {
+    assert.doesNotMatch(
+      source,
+      /npm\s+publish|gh\s+release\s+create|gh\s+workflow\s+run.*publish|id-token\s*:\s*write/i,
+      `${file} must not expose a release or publication side effect`,
+    );
+    assert.doesNotMatch(
+      source,
+      /\bgit\s+tag\s+["']?\$TAG["']?/i,
+      `${file} must not create a release tag`,
+    );
+    assert.doesNotMatch(
+      source,
+      /\bgit\s+push\s+origin\s+["']?\$TAG["']?/i,
+      `${file} must not push a release tag`,
+    );
+  }
+
+  for (const file of ["auto-release.yml", "publish.yml"]) {
+    await readFile(new URL(`../.github/disabled-workflows/${file}`, import.meta.url), "utf8");
+  }
 });
 
 const SCAFFOLD_SAMPLE_PATHS = [

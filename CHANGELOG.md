@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 This project follows semantic versioning.
 
+## [0.1.13] - 2026-10-16
+
+### Changed
+
+- Prepare Pi SDK 1.2.0 compatibility with exact development pins; public peer ranges stay unchanged.
+- Hold automated release and npm publication pending a separately authorized protected release boundary. This version is prepared, not published.
+
 ## [0.1.12] - 2026-09-30
 
 ### Changed

@@ -66,11 +66,4 @@ Before opening a PR:
 
 ## Release
 
-Releases use npm Trusted Publishing. Do not add `NPM_TOKEN` to GitHub Secrets.
-
-```bash
-npm version patch
-git push
-```
-
-`auto-release.yml` creates the release tag and dispatches `publish.yml` after the version bump lands on `main`. Push the version commit only; see [`docs/release.md`](docs/release.md) for the full release flow.
+**Publication is on hold.** Do not create release tags, dispatch workflows, or run `npm publish` (including the former OTP fallback). Version bumps are prepared through reviewed code PRs only; they must not cause publication as a merge side effect. See [`docs/release.md`](docs/release.md) for the current hold and its boundary.
