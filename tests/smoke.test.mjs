@@ -125,6 +125,16 @@ test("active GitHub workflows cannot release, dispatch, or publish", async () =>
       /npm\s+publish|gh\s+release\s+create|gh\s+workflow\s+run.*publish|id-token\s*:\s*write/i,
       `${file} must not expose a release or publication side effect`,
     );
+    assert.doesNotMatch(
+      source,
+      /\bgit\s+tag\s+["']?\$TAG["']?/i,
+      `${file} must not create a release tag`,
+    );
+    assert.doesNotMatch(
+      source,
+      /\bgit\s+push\s+origin\s+["']?\$TAG["']?/i,
+      `${file} must not push a release tag`,
+    );
   }
 
   for (const file of ["auto-release.yml", "publish.yml"]) {
