@@ -102,12 +102,10 @@ test("changelog documents the current package version", () => {
   assert.ok(changelog.includes(versionHeading), `expected CHANGELOG to include ${versionHeading}`);
 });
 
-test("contributing release docs avoid manual tag pushes", () => {
-  assert.match(contributing, /npm version patch/);
-  assert.match(contributing, /^git push$/m);
-  assert.doesNotMatch(contributing, /--follow-tags/);
-  assert.doesNotMatch(contributing, /^git push --/m);
-  assert.doesNotMatch(contributing, /^git push origin/m);
+test("contributing release docs require an explicit release dispatch", () => {
+  assert.match(contributing, /gh workflow run auto-release\.yml --ref main/);
+  assert.doesNotMatch(contributing, /^npm version patch$/m);
+  assert.doesNotMatch(contributing, /^git push$/m);
   assert.match(releaseDocs, /auto-release\.yml/);
   assert.match(releaseDocs, /gh workflow run publish\.yml/);
 });

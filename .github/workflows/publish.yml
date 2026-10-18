@@ -1,17 +1,6 @@
 name: Publish to npm
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - package.json
-      - package-lock.json
-      - .github/workflows/publish.yml
-    tags:
-      - 'v*.*.*'
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       ref:
@@ -38,6 +27,35 @@ jobs:
         with:
           ref: ${{ github.event.inputs.ref || github.ref }}
           persist-credentials: false
+
+      - name: Validate release tag
+        shell: bash
+        env:
+          RELEASE_REF: ${{ github.event.inputs.ref || github.ref }}
+        run: |
+          REF="${RELEASE_REF#refs/tags/}"
+          if [[ ! "$REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Publish workflow requires an explicit v<major>.<minor>.<patch> tag." >&2
+            exit 1
+          fi
+
+          if ! git show-ref --verify --quiet "refs/tags/${REF}"; then
+            echo "Release ref ${REF} is not an existing tag." >&2
+            exit 1
+          fi
+
+          TAG_COMMIT=$(git rev-parse "refs/tags/${REF}^{commit}")
+          CHECKED_OUT_COMMIT=$(git rev-parse HEAD)
+          if [ "$CHECKED_OUT_COMMIT" != "$TAG_COMMIT" ]; then
+            echo "Checked-out commit ${CHECKED_OUT_COMMIT} does not match release tag ${REF} at ${TAG_COMMIT}." >&2
+            exit 1
+          fi
+
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "$VERSION" != "${REF#v}" ]; then
+            echo "Tag ${REF} does not match package version ${VERSION}." >&2
+            exit 1
+          fi
 
       - name: Setup Node.js
         uses: actions/setup-node@v7

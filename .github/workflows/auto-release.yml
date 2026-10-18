@@ -1,10 +1,7 @@
 name: Auto Release
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - package.json
+  workflow_dispatch:
 
 permissions:
   actions: write
@@ -20,30 +17,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Check for version bump
+      - name: Check release request
         id: check
         shell: bash
         run: |
-          BEFORE="${{ github.event.before }}"
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "Release workflow must be dispatched from main." >&2
+            exit 1
+          fi
+
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           TAG="v${CURRENT_VERSION}"
 
-          if [ -z "$BEFORE" ] || printf '%s' "$BEFORE" | grep -Eq '^0+$'; then
-            echo "No previous commit is available; skipping auto release."
-            echo "released=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          if ! git cat-file -e "${BEFORE}:package.json" 2>/dev/null; then
-            echo "Previous package.json is not available; skipping auto release."
-            echo "released=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          PREVIOUS_VERSION=$(git show "${BEFORE}:package.json" | node -e "let input=''; process.stdin.on('data', c => input += c); process.stdin.on('end', () => console.log(JSON.parse(input).version || ''));")
-
-          if [ "$CURRENT_VERSION" = "$PREVIOUS_VERSION" ]; then
-            echo "package.json version did not change (${CURRENT_VERSION}); skipping."
+          LATEST_TAG=$(git tag --list 'v*.*.*' --sort=-version:refname | head -n 1)
+          if [ -n "$LATEST_TAG" ] && [ "${LATEST_TAG#v}" = "$CURRENT_VERSION" ]; then
+            echo "Package version ${CURRENT_VERSION} is already the latest tagged release; skipping."
             echo "released=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -54,7 +42,7 @@ jobs:
             exit 0
           fi
 
-          echo "Version bump detected: ${PREVIOUS_VERSION} -> ${CURRENT_VERSION}."
+          echo "Release requested for ${CURRENT_VERSION}."
           echo "released=true" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 

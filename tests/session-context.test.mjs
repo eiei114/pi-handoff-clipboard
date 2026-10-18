@@ -12,6 +12,12 @@ test("getHandoffMessages returns branch messages when there is no compaction", (
       timestamp: "2026-06-09T00:00:00.000Z",
       message: { role: "user", content: "hello", timestamp: 1 },
     },
+    {
+      type: "session_info",
+      id: "2",
+      parentId: "1",
+      timestamp: "2026-06-09T00:00:01.000Z",
+    },
   ]);
 
   assert.equal(result.length, 1);
