@@ -9,6 +9,7 @@ This project follows semantic versioning.
 ### Changed
 
 - Reduce temporary array allocations when collecting handoff messages from session entries.
+- Require an explicit workflow dispatch to release and publish the package.
 
 ## [0.1.12] - 2026-09-30
 

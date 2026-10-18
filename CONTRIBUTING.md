@@ -67,10 +67,13 @@ Before opening a PR:
 ## Release
 
 Releases use npm Trusted Publishing. Do not add `NPM_TOKEN` to GitHub Secrets.
+Merging a package version bump to `main` does not create a tag, GitHub Release,
+or npm publication. An authorized maintainer starts a release explicitly after
+reviewing the version bump:
 
 ```bash
-npm version patch
-git push
+gh workflow run auto-release.yml --ref main
 ```
 
-`auto-release.yml` creates the release tag and dispatches `publish.yml` after the version bump lands on `main`. Push the version commit only; see [`docs/release.md`](docs/release.md) for the full release flow.
+The workflow creates the release tag and explicitly dispatches `publish.yml`.
+See [`docs/release.md`](docs/release.md) for the full release flow.
