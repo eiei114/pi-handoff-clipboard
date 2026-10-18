@@ -44,6 +44,13 @@ jobs:
             exit 1
           fi
 
+          TAG_COMMIT=$(git rev-parse "refs/tags/${REF}^{commit}")
+          CHECKED_OUT_COMMIT=$(git rev-parse HEAD)
+          if [ "$CHECKED_OUT_COMMIT" != "$TAG_COMMIT" ]; then
+            echo "Checked-out commit ${CHECKED_OUT_COMMIT} does not match release tag ${REF} at ${TAG_COMMIT}." >&2
+            exit 1
+          fi
+
           VERSION=$(node -p "require('./package.json').version")
           if [ "$VERSION" != "${REF#v}" ]; then
             echo "Tag ${REF} does not match package version ${VERSION}." >&2
