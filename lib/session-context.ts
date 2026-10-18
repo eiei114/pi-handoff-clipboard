@@ -30,9 +30,9 @@ export function getHandoffMessages(branch: SessionEntry[]): AgentMessage[] {
   }
 
   if (compactionIndex < 0) {
-    return branch
-      .map(entryToMessage)
-      .filter((message): message is AgentMessage => message !== undefined);
+    const messages: AgentMessage[] = [];
+    appendMessages(messages, branch, 0, branch.length);
+    return messages;
   }
 
   const compaction = branch[compactionIndex];
@@ -41,13 +41,28 @@ export function getHandoffMessages(branch: SessionEntry[]): AgentMessage[] {
       ? branch.findIndex((entry) => entry.id === compaction.firstKeptEntryId)
       : -1;
 
-  const compactedBranch = [
-    compaction,
-    ...(firstKeptIndex >= 0 ? branch.slice(firstKeptIndex, compactionIndex) : []),
-    ...branch.slice(compactionIndex + 1),
-  ];
+  const messages: AgentMessage[] = [];
+  const compactionMessage = entryToMessage(compaction);
+  if (compactionMessage !== undefined) {
+    messages.push(compactionMessage);
+  }
+  if (firstKeptIndex >= 0) {
+    appendMessages(messages, branch, firstKeptIndex, compactionIndex);
+  }
+  appendMessages(messages, branch, compactionIndex + 1, branch.length);
+  return messages;
+}
 
-  return compactedBranch
-    .map(entryToMessage)
-    .filter((message): message is AgentMessage => message !== undefined);
+function appendMessages(
+  messages: AgentMessage[],
+  entries: SessionEntry[],
+  startIndex: number,
+  endIndex: number,
+): void {
+  for (let index = startIndex; index < endIndex; index += 1) {
+    const message = entryToMessage(entries[index]!);
+    if (message !== undefined) {
+      messages.push(message);
+    }
+  }
 }

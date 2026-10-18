@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project follows semantic versioning.
 
+## [0.1.13] - 2026-10-19
+
+### Changed
+
+- Reduce temporary array allocations when collecting handoff messages from session entries.
+
 ## [0.1.12] - 2026-09-30
 
 ### Changed
