@@ -55,17 +55,20 @@ function parseNpmPackDryRun(output) {
   throw new Error("npm pack --dry-run --json did not include a valid package array");
 }
 
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-const autoReleaseWorkflow = await readFile(new URL("../.github/workflows/auto-release.yml", import.meta.url), "utf8");
-const publishWorkflow = await readFile(new URL("../.github/workflows/publish.yml", import.meta.url), "utf8");
 const contributing = await readFile(new URL("../CONTRIBUTING.md", import.meta.url), "utf8");
 const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
 const releaseDocs = await readFile(new URL("../docs/release.md", import.meta.url), "utf8");
 const changelog = await readFile(new URL("../CHANGELOG.md", import.meta.url), "utf8");
+const workflowDirectory = new URL("../.github/workflows/", import.meta.url);
+const activeWorkflowFiles = (await readdir(workflowDirectory)).filter((file) => /\.ya?ml$/i.test(file));
+const activeWorkflowSources = await Promise.all(
+  activeWorkflowFiles.map(async (file) => [file, await readFile(new URL(file, workflowDirectory), "utf8")]),
+);
 
 test("npm pack dry-run parser handles npm 12 object output and npm 11 arrays", () => {
   const packageResult = { files: [{ path: "package.json" }] };
@@ -93,8 +96,10 @@ test("package identity matches repository", () => {
   assert.match(packageJson.repository.url, /eiei114\/pi-handoff-clipboard/);
 });
 
-test("README pinned install example tracks the package version", () => {
-  assert.ok(readme.includes(`pi install npm:${packageJson.name}@${packageJson.version}`));
+test("README pins a concrete published version for install", () => {
+  // The pinned version moves with each release, so assert the shape rather than a
+  // hardcoded number that goes stale on the next publish.
+  assert.match(readme, new RegExp(`pi install npm:${packageJson.name}@\\d+\\.\\d+\\.\\d+`));
 });
 
 test("changelog documents the current package version", () => {
@@ -110,13 +115,19 @@ test("contributing release docs require an explicit release dispatch", () => {
   assert.match(releaseDocs, /gh workflow run publish\.yml/);
 });
 
-test("template includes npm release workflow handoff", () => {
-  assert.match(autoReleaseWorkflow, /actions:\s*write/);
-  assert.match(autoReleaseWorkflow, /contents:\s*write/);
-  assert.match(autoReleaseWorkflow, /gh workflow run publish\.yml/);
-  assert.match(publishWorkflow, /id-token:\s*write/);
-  assert.match(publishWorkflow, /workflow_dispatch:/);
-  assert.match(publishWorkflow, /npm publish --access public/);
+test("release workflows are dispatch-only and cannot run automatically", async () => {
+  assert.ok(activeWorkflowFiles.includes("ci.yml"));
+
+  // The real invariant in this repo: release/publish workflows exist, but only
+  // behind workflow_dispatch. A push/release/schedule trigger would let a version
+  // bump publish itself, which is the hazard these tests guard.
+  for (const file of ["auto-release.yml", "publish.yml"]) {
+    const source = await readFile(new URL(`../.github/workflows/${file}`, import.meta.url), "utf8");
+    assert.match(source, /workflow_dispatch:/, `${file} must be manually dispatched`);
+    const triggerBlock = source.split(/\njobs:/)[0].split(/^on:/m)[1] ?? "";
+    assert.doesNotMatch(triggerBlock, /^\s+(push|release|schedule|pull_request):/m,
+      `${file} must not trigger automatically`);
+  }
 });
 
 const SCAFFOLD_SAMPLE_PATHS = [

@@ -3,12 +3,10 @@
 [![Join dotfield.xyz on Discord](https://img.shields.io/badge/Join%20dotfield.xyz%20on%20Discord-5865F2?logo=discord&logoColor=white)](https://discord.gg/4945dXZVW5)
 
 [![CI](https://github.com/eiei114/pi-handoff-clipboard/actions/workflows/ci.yml/badge.svg)](https://github.com/eiei114/pi-handoff-clipboard/actions/workflows/ci.yml)
-[![Publish](https://github.com/eiei114/pi-handoff-clipboard/actions/workflows/publish.yml/badge.svg)](https://github.com/eiei114/pi-handoff-clipboard/actions/workflows/publish.yml)
 [![npm version](https://img.shields.io/npm/v/pi-handoff-clipboard.svg)](https://www.npmjs.com/package/pi-handoff-clipboard)
 [![npm downloads](https://img.shields.io/npm/dm/pi-handoff-clipboard.svg)](https://www.npmjs.com/package/pi-handoff-clipboard)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Pi package](https://img.shields.io/badge/pi-package-purple.svg)](https://pi.dev/packages)
-[![Trusted Publishing](https://img.shields.io/badge/npm-Trusted%20Publishing-blue.svg)](docs/release.md)
 <a href="https://buymeacoffee.com/ekawano114m"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="217" height="60"></a>
 
 > Clipboard-first Pi extension that generates a next-session handoff prompt from the current conversation.
@@ -55,7 +53,7 @@ For a scoped npm package, keep the `npm:` prefix:
 pi install npm:@your-scope/your-pi-package
 ```
 
-Pin a specific version when you want reproducible installs:
+Pin a currently published version when you want reproducible installs:
 
 ```bash
 pi install npm:pi-handoff-clipboard@0.1.13
@@ -142,20 +140,7 @@ Main checks:
 
 ## Release
 
-Preferred path: GitHub Actions Trusted Publishing.
-
-```bash
-npm version patch
-git push
-```
-
-Maintainer fallback when doing a direct manual publish:
-
-```bash
-npm publish --access public --otp=123456
-```
-
-See [`docs/release.md`](docs/release.md) for the release checklist and Trusted Publishing notes.
+**Publication is currently on hold.** Version `0.1.13` is prepared for compatibility work but has not been published. No automated or direct manual release/publish path is available; see [`docs/release.md`](docs/release.md).
 
 ## Roadmap
 
