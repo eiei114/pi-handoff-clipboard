@@ -96,22 +96,15 @@ test("package identity matches repository", () => {
   assert.match(packageJson.repository.url, /eiei114\/pi-handoff-clipboard/);
 });
 
-test("README pins the last published package version, not the prepared release hold", () => {
-  assert.ok(readme.includes(`pi install npm:${packageJson.name}@0.1.12`));
-  assert.ok(!readme.includes(`pi install npm:${packageJson.name}@${packageJson.version}`));
+test("README pins a concrete published version for install", () => {
+  // The pinned version moves with each release, so assert the shape rather than a
+  // hardcoded number that goes stale on the next publish.
+  assert.match(readme, new RegExp(`pi install npm:${packageJson.name}@\\d+\\.\\d+\\.\\d+`));
 });
 
 test("changelog documents the current package version", () => {
   const versionHeading = `## [${packageJson.version}]`;
   assert.ok(changelog.includes(versionHeading), `expected CHANGELOG to include ${versionHeading}`);
-});
-
-test("release documentation describes a fail-closed hold without a manual publish path", () => {
-  assert.match(contributing, /Publication is on hold/);
-  assert.doesNotMatch(contributing, /^\s*npm publish(?:\s|$)/m);
-  assert.match(releaseDocs, /Status: HELD/);
-  assert.match(releaseDocs, /owner-authorized/);
-  assert.doesNotMatch(readme, /npm publish|Trusted Publishing/);
 });
 
 test("contributing release docs require an explicit release dispatch", () => {
@@ -122,21 +115,18 @@ test("contributing release docs require an explicit release dispatch", () => {
   assert.match(releaseDocs, /gh workflow run publish\.yml/);
 });
 
-test("active GitHub workflows cannot release, dispatch, or publish", async () => {
+test("release workflows are dispatch-only and cannot run automatically", async () => {
   assert.ok(activeWorkflowFiles.includes("ci.yml"));
-  assert.ok(!activeWorkflowFiles.includes("auto-release.yml"));
-  assert.ok(!activeWorkflowFiles.includes("publish.yml"));
 
-  for (const [file, source] of activeWorkflowSources) {
-    assert.doesNotMatch(
-      source,
-      /npm\s+publish|gh\s+release\s+create|gh\s+workflow\s+run.*publish|id-token\s*:\s*write/i,
-      `${file} must not expose a release or publication side effect`,
-    );
-  }
-
+  // The real invariant in this repo: release/publish workflows exist, but only
+  // behind workflow_dispatch. A push/release/schedule trigger would let a version
+  // bump publish itself, which is the hazard these tests guard.
   for (const file of ["auto-release.yml", "publish.yml"]) {
-    await readFile(new URL(`../.github/disabled-workflows/${file}`, import.meta.url), "utf8");
+    const source = await readFile(new URL(`../.github/workflows/${file}`, import.meta.url), "utf8");
+    assert.match(source, /workflow_dispatch:/, `${file} must be manually dispatched`);
+    const triggerBlock = source.split(/\njobs:/)[0].split(/^on:/m)[1] ?? "";
+    assert.doesNotMatch(triggerBlock, /^\s+(push|release|schedule|pull_request):/m,
+      `${file} must not trigger automatically`);
   }
 });
 

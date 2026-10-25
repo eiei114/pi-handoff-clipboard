@@ -66,4 +66,14 @@ Before opening a PR:
 
 ## Release
 
-**Publication is on hold.** Do not create release tags, dispatch workflows, or run `npm publish` (including the former OTP fallback). Version bumps are prepared through reviewed code PRs only; they must not cause publication as a merge side effect. See [`docs/release.md`](docs/release.md) for the current hold and its boundary.
+Releases use npm Trusted Publishing. Do not add `NPM_TOKEN` to GitHub Secrets.
+Merging a package version bump to `main` does not create a tag, GitHub Release,
+or npm publication. An authorized maintainer starts a release explicitly after
+reviewing the version bump:
+
+```bash
+gh workflow run auto-release.yml --ref main
+```
+
+The workflow creates the release tag and explicitly dispatches `publish.yml`.
+See [`docs/release.md`](docs/release.md) for the full release flow.
