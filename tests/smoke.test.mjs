@@ -130,6 +130,26 @@ test("release workflows are dispatch-only and cannot run automatically", async (
   }
 });
 
+test("tag creation and tag push stay behind a dispatch-only main-branch guard", async () => {
+  // auto-release.yml does create and push a tag. That is only safe because the
+  // workflow cannot start without workflow_dispatch and the first step refuses to
+  // run anywhere except refs/heads/main. If either guard disappears, a merge
+  // would release itself.
+  const source = await readFile(
+    new URL("../.github/workflows/auto-release.yml", import.meta.url), "utf8");
+
+  const triggerBlock = source.split(/\njobs:/)[0].split(/^on:/m)[1] ?? "";
+  assert.match(triggerBlock, /workflow_dispatch:/, "release must be manually dispatched");
+  assert.doesNotMatch(triggerBlock, /^\s+(push|release|schedule|pull_request):/m,
+    "release must not trigger automatically");
+
+  const pushesTag = /git tag\s+/.test(source) || /git push origin/.test(source);
+  if (pushesTag) {
+    assert.match(source, /GITHUB_REF.*refs\/heads\/main|refs\/heads\/main.*GITHUB_REF/,
+      "tag creation/push must be gated on the main branch");
+    assert.match(source, /exit 1/, "the guard must fail closed");
+  }
+});
 const SCAFFOLD_SAMPLE_PATHS = [
   "../prompts/example.md",
   "../skills/example-skill/SKILL.md",
