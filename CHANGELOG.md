@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project follows semantic versioning.
 
+## [0.1.14] - 2026-11-07
+
+### Changed
+
+- Pin development and smoke-test dependencies to Pi SDK 1.5.0; keep the public peer ranges unchanged.
+
 ## [0.1.13] - 2026-10-16
 
 ### Changed

@@ -57,7 +57,7 @@ const piManifest = readJson(resolve(piPackageDir, "package.json"));
 const piCli = resolve(piPackageDir, piManifest.bin.pi);
 
 function verifySdkPins() {
-  const expectedVersions = Object.fromEntries(SDK_NAMES.map((name) => [name, "1.2.0"]));
+  const expectedVersions = Object.fromEntries(SDK_NAMES.map((name) => [name, "1.5.0"]));
   for (const name of SDK_NAMES) {
     const declaredVersion = packageJson.devDependencies?.[name];
     const installedVersion = readJson(resolve(root, "node_modules", name, "package.json")).version;
@@ -422,7 +422,7 @@ function makeCase(name, result, observed, providerRequests) {
 }
 
 function caseFailed(name, error) {
-  const observed = name === "host_shell" ? { exitCode: null, output: String(error), expectedVersion: "1.2.0" } : {};
+  const observed = name === "host_shell" ? { exitCode: null, output: String(error), expectedVersion: "1.5.0" } : {};
   return {
     name,
     command: "npm run smoke:pi -- --record",
