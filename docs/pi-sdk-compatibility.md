@@ -35,8 +35,10 @@ The Windows smoke verifies the generated clipboard content and restores the
 previous plain-text clipboard state; Linux headless runs assert the actual OSC 52
 payload. The Linux child clears inherited display/Termux variables so CI runners
 with a display variable still exercise that deterministic headless path; the
-host environment is not modified. Non-text Windows clipboard formats are never
-overwritten.
+host environment is not modified. Its Linux RPC check reads OSC 52 from both
+stdout and stderr because Pi's non-interactive output guard redirects extension
+stdout to stderr while keeping RPC frames on the raw stdout stream. Non-text
+Windows clipboard formats are never overwritten.
 
 Normal smoke runs do not modify the tracked report. After a successful run,
 explicitly record its output with:

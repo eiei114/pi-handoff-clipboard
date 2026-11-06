@@ -8,6 +8,7 @@ import {
   behaviorAssertions,
   createSmokeEnvironment,
   EXTENSION_LOAD_ERROR_PATTERN,
+  parseClipboardPayloads,
   parseJsonLines,
   parseOsc52Payloads,
   sanitizeLocalPaths,
@@ -376,7 +377,7 @@ async function withVerifiedClipboard(run) {
 
   if (process.platform === "linux") {
     const result = await run();
-    const payloads = parseOsc52Payloads(result.stdout);
+    const payloads = parseClipboardPayloads(result.stdout, result.stderr);
     const copied = payloads.includes(GENERATED_HANDOFF);
     return { result, clipboard: { channel: "Pi OSC 52 headless clipboard boundary", verified: copied, text: copied ? GENERATED_HANDOFF : null } };
   }

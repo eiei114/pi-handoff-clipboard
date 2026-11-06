@@ -26,6 +26,10 @@ export function parseOsc52Payloads(output) {
   );
 }
 
+export function parseClipboardPayloads(stdout, stderr) {
+  return [...parseOsc52Payloads(stdout), ...parseOsc52Payloads(stderr)];
+}
+
 export function sanitizeLocalPaths(output, paths) {
   let sanitized = `${output}`;
   for (const path of paths) {

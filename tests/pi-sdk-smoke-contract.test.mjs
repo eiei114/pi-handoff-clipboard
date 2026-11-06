@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   behaviorAssertions,
   createSmokeEnvironment,
+  parseClipboardPayloads,
   parseJsonLines,
   parseOsc52Payloads,
   sanitizeLocalPaths,
@@ -31,6 +32,9 @@ test("smoke contract parses JSONL and captured OSC 52 payloads", () => {
   assert.deepEqual(parseJsonLines(`not-json\r\n${JSON.stringify(prompt)}\n`), [prompt]);
   assert.deepEqual(parseJsonLines(`\u001b]52;c;aGFuZG9mZg==\u0007${JSON.stringify(prompt)}\n`), [prompt]);
   assert.deepEqual(parseOsc52Payloads("\u001b]52;c;aGFuZG9mZg==\u0007"), ["handoff"]);
+  assert.deepEqual(parseClipboardPayloads("", "\u001b]52;c;aGFuZG9mZg==\u0007"), ["handoff"]);
+  assert.deepEqual(parseClipboardPayloads("\u001b]52;c;aGFuZG9mZg==\u0007", ""), ["handoff"]);
+  assert.deepEqual(parseClipboardPayloads("", ""), []);
 });
 
 test("recorded evidence removes raw, slash-normalized, and JSON-escaped local paths", () => {
