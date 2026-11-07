@@ -8,6 +8,7 @@ import {
   behaviorAssertions,
   createSmokeEnvironment,
   EXTENSION_LOAD_ERROR_PATTERN,
+  parseClipboardPayloads,
   parseJsonLines,
   parseOsc52Payloads,
   sanitizeLocalPaths,
@@ -57,7 +58,7 @@ const piManifest = readJson(resolve(piPackageDir, "package.json"));
 const piCli = resolve(piPackageDir, piManifest.bin.pi);
 
 function verifySdkPins() {
-  const expectedVersions = Object.fromEntries(SDK_NAMES.map((name) => [name, "1.2.0"]));
+  const expectedVersions = Object.fromEntries(SDK_NAMES.map((name) => [name, "1.5.0"]));
   for (const name of SDK_NAMES) {
     const declaredVersion = packageJson.devDependencies?.[name];
     const installedVersion = readJson(resolve(root, "node_modules", name, "package.json")).version;
@@ -376,7 +377,7 @@ async function withVerifiedClipboard(run) {
 
   if (process.platform === "linux") {
     const result = await run();
-    const payloads = parseOsc52Payloads(result.stdout);
+    const payloads = parseClipboardPayloads(result.stdout, result.stderr);
     const copied = payloads.includes(GENERATED_HANDOFF);
     return { result, clipboard: { channel: "Pi OSC 52 headless clipboard boundary", verified: copied, text: copied ? GENERATED_HANDOFF : null } };
   }
@@ -409,6 +410,12 @@ function makeCase(name, result, observed, providerRequests) {
     && !flags.unhandled && !flags.loadError && assertions.every((item) => item.passed);
   const output = `${fullOutput}${result?.flowError ? `\nHarness error: ${result.flowError}` : ""}`;
   const evidence = cleanEvidence(output, providerRequests);
+  const diagnostic = process.platform === "linux" ? {
+    stdoutHasOsc52: /\u001b\]52;c;/.test(result?.stdout ?? ""),
+    stderrHasOsc52: /\u001b\]52;c;/.test(result?.stderr ?? ""),
+    stdoutOsc52PayloadCount: parseOsc52Payloads(result?.stdout ?? "").length,
+    stderrOsc52PayloadCount: parseOsc52Payloads(result?.stderr ?? "").length,
+  } : undefined;
   return {
     name,
     command: "npm run smoke:pi -- --record",
@@ -418,11 +425,12 @@ function makeCase(name, result, observed, providerRequests) {
     assertions,
     hasUnhandledError: flags.unhandled,
     hasLoadError: extensionLoadErrors,
+    diagnostic,
   };
 }
 
 function caseFailed(name, error) {
-  const observed = name === "host_shell" ? { exitCode: null, output: String(error), expectedVersion: "1.2.0" } : {};
+  const observed = name === "host_shell" ? { exitCode: null, output: String(error), expectedVersion: "1.5.0" } : {};
   return {
     name,
     command: "npm run smoke:pi -- --record",
@@ -543,6 +551,11 @@ async function main() {
     verification_contract: report.verification_contract,
     platform: report.platform,
     cases: report.cases.map((item) => ({ name: item.name, passed: item.passed, exit_code: item.exit_code })),
+    failures: cases.filter((item) => !item.passed).map(({ name, assertions, diagnostic }) => ({
+      name,
+      failed_assertions: assertions.filter((item) => !item.passed),
+      ...(diagnostic ? { diagnostic } : {}),
+    })),
   };
   if (shouldRecord) {
     mkdirSync(resolve(root, "docs/verification"), { recursive: true });

@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   behaviorAssertions,
   createSmokeEnvironment,
+  parseClipboardPayloads,
   parseJsonLines,
   parseOsc52Payloads,
   sanitizeLocalPaths,
@@ -31,6 +32,9 @@ test("smoke contract parses JSONL and captured OSC 52 payloads", () => {
   assert.deepEqual(parseJsonLines(`not-json\r\n${JSON.stringify(prompt)}\n`), [prompt]);
   assert.deepEqual(parseJsonLines(`\u001b]52;c;aGFuZG9mZg==\u0007${JSON.stringify(prompt)}\n`), [prompt]);
   assert.deepEqual(parseOsc52Payloads("\u001b]52;c;aGFuZG9mZg==\u0007"), ["handoff"]);
+  assert.deepEqual(parseClipboardPayloads("", "\u001b]52;c;aGFuZG9mZg==\u0007"), ["handoff"]);
+  assert.deepEqual(parseClipboardPayloads("\u001b]52;c;aGFuZG9mZg==\u0007", ""), ["handoff"]);
+  assert.deepEqual(parseClipboardPayloads("", ""), []);
 });
 
 test("recorded evidence removes raw, slash-normalized, and JSON-escaped local paths", () => {
@@ -124,11 +128,11 @@ test("reload requires second-process registration, feature response, and clean e
 });
 
 test("native host shell requires the exact pinned CLI version and zero exit", () => {
-  assert.equal(passed("host_shell", { exitCode: 0, output: "1.2.0\r\n", expectedVersion: "1.2.0" }), true);
+  assert.equal(passed("host_shell", { exitCode: 0, output: "1.5.0\r\n", expectedVersion: "1.5.0" }), true);
   for (const observed of [
-    { exitCode: 1, output: "1.2.0", expectedVersion: "1.2.0" },
-    { exitCode: 0, output: "11.2.0", expectedVersion: "1.2.0" },
-    { exitCode: 0, output: "1.2.0 with error", expectedVersion: "1.2.0" },
+    { exitCode: 1, output: "1.5.0", expectedVersion: "1.5.0" },
+    { exitCode: 0, output: "11.5.0", expectedVersion: "1.5.0" },
+    { exitCode: 0, output: "1.5.0 with error", expectedVersion: "1.5.0" },
   ]) {
     assert.equal(passed("host_shell", observed), false);
   }
