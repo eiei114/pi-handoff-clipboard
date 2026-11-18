@@ -11,18 +11,26 @@ are targets, and any user-facing change still follows the
 
 | Item | Value |
 |---|---|
-| npm package | [`pi-handoff-clipboard`](https://www.npmjs.com/package/pi-handoff-clipboard) |
-| Latest version | **0.1.12** (GitHub release `v0.1.12`, 2026-09-30) |
-| Roadmap reviewed | 2026-10-05 |
-| Current revision | `2def4b8` (shared unique-value collection helper) |
-| Single command | `/handoff:copy` (clipboard-first) |
-| Release mechanism | npm Trusted Publishing via GitHub Actions |
-| CI gates | `npm run typecheck`, `node --test tests/*.test.mjs`, `npm pack --dry-run` |
-| Open Dependabot PRs | none |
-| Open GitHub issues | none |
+| npm package | [`pi-handoff-clipboard`](https://www.npmjs.com/package/pi-handoff-clipboard) (`package.json`) |
+| Package version | **0.1.14** (`package.json`; latest `CHANGELOG.md` entry dated 2026-11-07) |
+| Development Pi SDK pins | **1.5.2** in `package.json` and `package-lock.json`; the 0.1.14 changelog entry says 1.5.0, so its pin note is stale |
+| Publication status | **On hold** per `README.md`. The README still identifies 0.1.13 as prepared, while package metadata and the latest changelog entry are 0.1.14; this roadmap does not claim 0.1.14 was published. `docs/release.md` describes authorized, explicit workflow dispatches. |
+| Roadmap reviewed | 2026-11-18 |
+| Single command | `/handoff:copy` (clipboard-first; `README.md`) |
+| Release mechanism | GitHub Actions `workflow_dispatch` only (`docs/release.md`) |
+| CI gates | `npm run ci` (typecheck, test, pack check) and `npm run smoke:pi`; `npm run ci:smoke` runs both (`package.json` scripts) |
 
 ### Recent releases
 
+- These entries follow `CHANGELOG.md`; they are not confirmation that a version
+  was published.
+- **0.1.14** (2026-11-07) — the changelog records development and smoke-test
+  dependencies pinned to Pi SDK 1.5.0. Current package metadata pins 1.5.2.
+- **0.1.13** (2026-10-19) — reduced temporary array allocations and required
+  explicit workflow dispatch to release and publish.
+- **0.1.13** (2026-10-16) — prepared Pi SDK 1.2.0 compatibility; automated
+  release and npm publication were held pending a separately authorized,
+  protected release boundary.
 - **0.1.12** (2026-09-30) — updated the Pi SDK dependencies to 0.99.1. No
   behavior change.
 - **0.1.7–0.1.11** (2026-09-27–2026-09-28) — periodic patch releases that kept
