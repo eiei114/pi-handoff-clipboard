@@ -19,6 +19,7 @@ test("parseSkillCommand reads skill tags inside surrounding text", () => {
 test("parseSkillCommand handles slash whitespace and rejects incomplete or similar commands", () => {
   assert.equal(parseSkillCommand("/skill:line-break\nwith extra text"), "line-break");
   assert.equal(parseSkillCommand("  /skill:spaced  \t"), "spaced");
+  assert.equal(parseSkillCommand("/skill:tab\t extra context"), "tab");
   assert.equal(parseSkillCommand("/skill:"), undefined);
   assert.equal(parseSkillCommand("/skill: name"), undefined);
   assert.equal(parseSkillCommand("/skills:foo"), undefined);
@@ -59,7 +60,11 @@ test("collectUsedSkills reads text blocks and ignores other blocks and non-user 
       id: "2",
       parentId: "1",
       timestamp: "2026-06-09T00:00:01.000Z",
-      message: { role: "assistant", content: "/skill:assistant-skill", timestamp: 2 },
+      message: {
+        role: "assistant",
+        content: [{ type: "text", text: "/skill:assistant-skill" }],
+        timestamp: 2,
+      },
     },
     {
       type: "message",
@@ -68,7 +73,9 @@ test("collectUsedSkills reads text blocks and ignores other blocks and non-user 
       timestamp: "2026-06-09T00:00:02.000Z",
       message: {
         role: "toolResult",
+        toolCallId: "call-1",
         toolName: "bash",
+        isError: false,
         content: [{ type: "text", text: "/skill:tool-skill" }],
         timestamp: 3,
       },
@@ -134,16 +141,9 @@ test("collectUsedSkills deduplicates mixed sources in first-occurrence order and
       data: { skillName: "recorded-second" },
     },
     {
-      type: "message",
-      id: "3",
-      parentId: "2",
-      timestamp: "2026-06-09T00:00:02.000Z",
-      message: { role: "user", content: "/skill:recorded-second", timestamp: 2 },
-    },
-    {
       type: "custom",
       id: "4",
-      parentId: "3",
+      parentId: "2",
       timestamp: "2026-06-09T00:00:03.000Z",
       customType: SKILL_USAGE_ENTRY_TYPE,
       data: {},
@@ -179,6 +179,13 @@ test("collectUsedSkills deduplicates mixed sources in first-occurrence order and
       timestamp: "2026-06-09T00:00:07.000Z",
       customType: SKILL_USAGE_ENTRY_TYPE,
       data: { skillName: "recorded-third" },
+    },
+    {
+      type: "message",
+      id: "9",
+      parentId: "8",
+      timestamp: "2026-06-09T00:00:08.000Z",
+      message: { role: "user", content: "/skill:recorded-second", timestamp: 8 },
     },
   ]);
 
