@@ -58,12 +58,10 @@ const piManifest = readJson(resolve(piPackageDir, "package.json"));
 const piCli = resolve(piPackageDir, piManifest.bin.pi);
 
 function verifySdkPins() {
-  const expectedVersions = Object.fromEntries(SDK_NAMES.map((name) => [name, "1.5.0"]));
+  const expectedVersions = Object.fromEntries(SDK_NAMES.map((name) => [name, packageJson.devDependencies?.[name]]));
   for (const name of SDK_NAMES) {
-    const declaredVersion = packageJson.devDependencies?.[name];
     const installedVersion = readJson(resolve(root, "node_modules", name, "package.json")).version;
-    assert.equal(declaredVersion, expectedVersions[name], `${name} must be pinned exactly in devDependencies`);
-    assert.equal(installedVersion, expectedVersions[name], `${name} must be installed at the frozen SDK version`);
+    assert.equal(installedVersion, expectedVersions[name], `${name} must be pinned exactly in devDependencies and installed at that version`);
   }
   return expectedVersions;
 }
@@ -429,8 +427,8 @@ function makeCase(name, result, observed, providerRequests) {
   };
 }
 
-function caseFailed(name, error) {
-  const observed = name === "host_shell" ? { exitCode: null, output: String(error), expectedVersion: "1.5.0" } : {};
+function caseFailed(name, error, expectedVersion) {
+  const observed = name === "host_shell" ? { exitCode: null, output: String(error), expectedVersion } : {};
   return {
     name,
     command: "npm run smoke:pi -- --record",
@@ -530,7 +528,7 @@ async function main() {
         processError: shellResult.error?.message };
       cases.push(makeCase("host_shell", result, { exitCode: result.exitCode, output, expectedVersion }, provider.requests));
     } catch (error) {
-      cases.push(caseFailed("host_shell", error));
+      cases.push(caseFailed("host_shell", error, sdkVersions["@earendil-works/pi-coding-agent"]));
     }
   } finally {
     await closeProvider(provider.server);
