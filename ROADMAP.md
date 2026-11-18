@@ -17,7 +17,7 @@ are targets, and any user-facing change still follows the
 | Publication status | **On hold** per `README.md`. The README still identifies 0.1.13 as prepared, while package metadata and the latest changelog entry are 0.1.14; this roadmap does not claim 0.1.14 was published. `docs/release.md` describes authorized, explicit workflow dispatches. |
 | Roadmap reviewed | 2026-11-18 |
 | Single command | `/handoff:copy` (clipboard-first; `README.md`) |
-| Release mechanism | GitHub Actions `workflow_dispatch` only (`docs/release.md`) |
+| Release mechanism | `docs/release.md` documents explicit GitHub Actions `workflow_dispatch` and direct OTP `npm publish`; `README.md` says publication is on hold and neither path is currently available |
 | CI gates | `npm run ci` (typecheck, test, pack check) and `npm run smoke:pi`; `npm run ci:smoke` runs both (`package.json` scripts) |
 
 ### Recent releases
