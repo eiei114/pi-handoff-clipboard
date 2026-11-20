@@ -87,3 +87,86 @@ test("collectObservedFiles deduplicates recorded entries", () => {
 
   assert.deepEqual(result, ["src/index.ts"]);
 });
+
+test("collectObservedFiles recovers and normalizes legacy custom-entry paths", () => {
+  const result = collectObservedFiles(
+    [
+      {
+        type: "custom",
+        id: "legacy-observed-files",
+        parentId: null,
+        timestamp: "2026-06-09T00:00:00.000Z",
+        customType: OBSERVED_FILES_ENTRY_TYPE,
+        data: {
+          toolName: "read",
+          paths: [
+            "@./src/../src/index.ts",
+            "src/index.ts",
+            "https://example.test/file.ts",
+            "plain-text",
+            "malformed\nsrc/ignored.ts",
+          ],
+        },
+      },
+    ],
+    "C:/repo",
+  );
+
+  assert.deepEqual(result, ["src/index.ts"]);
+});
+
+test("collectObservedFiles ignores malformed custom-entry data without throwing", () => {
+  const malformedData = [
+    null,
+    "not-an-object",
+    42,
+    ["src/file.ts"],
+    { paths: null },
+    { paths: [null, 42, { path: "src/file.ts" }, "https://example.test/file.ts", "plain-text"] },
+  ];
+  const branch = malformedData.map((data, index) => ({
+    type: "custom",
+    id: `malformed-${index}`,
+    parentId: null,
+    timestamp: "2026-06-09T00:00:00.000Z",
+    customType: OBSERVED_FILES_ENTRY_TYPE,
+    data,
+  }));
+
+  assert.doesNotThrow(() => collectObservedFiles(branch, "C:/repo"));
+  assert.deepEqual(collectObservedFiles(branch, "C:/repo"), []);
+});
+
+test("collectObservedFiles recovers paths from a compacted branch with only tool results", () => {
+  const branch = [
+    {
+      type: "message",
+      id: "read-result",
+      parentId: null,
+      timestamp: "2026-06-09T00:00:00.000Z",
+      message: {
+        role: "toolResult",
+        toolName: "read",
+        details: { path: "@./src/../src/index.ts" },
+        content: [{ type: "text", text: "src/index.ts:4: existing content" }],
+        timestamp: 1,
+      },
+    },
+    {
+      type: "message",
+      id: "grep-result",
+      parentId: "read-result",
+      timestamp: "2026-06-09T00:00:01.000Z",
+      message: {
+        role: "toolResult",
+        toolName: "grep",
+        details: { matches: [{ path: "./docs/guide.md" }] },
+        content: [{ type: "text", text: "docs/guide.md:12: matching line" }],
+        timestamp: 2,
+      },
+    },
+  ];
+
+  assert.ok(branch.every((entry) => entry.type === "message" && entry.message.role === "toolResult"));
+  assert.deepEqual(collectObservedFiles(branch, "C:/repo"), ["src/index.ts", "docs/guide.md"]);
+});
