@@ -147,8 +147,16 @@ test("collectObservedFiles recovers paths from a compacted branch with only tool
       message: {
         role: "toolResult",
         toolName: "read",
-        details: { path: "@./src/../src/index.ts" },
-        content: [{ type: "text", text: "src/index.ts:4: existing content" }],
+        details: {
+          path: "@./src/../src/index.ts",
+          matches: [{ path: "src/from-details.ts" }],
+        },
+        content: [
+          {
+            type: "text",
+            text: "src/index.ts:4: existing content\nsrc/from-content.ts:5: text-only evidence",
+          },
+        ],
         timestamp: 1,
       },
     },
@@ -161,12 +169,18 @@ test("collectObservedFiles recovers paths from a compacted branch with only tool
         role: "toolResult",
         toolName: "grep",
         details: { matches: [{ path: "./docs/guide.md" }] },
-        content: [{ type: "text", text: "docs/guide.md:12: matching line" }],
+        content: [{ type: "text", text: "docs/from-grep-content.md:12: matching line" }],
         timestamp: 2,
       },
     },
   ];
 
   assert.ok(branch.every((entry) => entry.type === "message" && entry.message.role === "toolResult"));
-  assert.deepEqual(collectObservedFiles(branch, "C:/repo"), ["src/index.ts", "docs/guide.md"]);
+  assert.deepEqual(collectObservedFiles(branch, "C:/repo"), [
+    "src/index.ts",
+    "src/from-details.ts",
+    "src/from-content.ts",
+    "docs/guide.md",
+    "docs/from-grep-content.md",
+  ]);
 });
