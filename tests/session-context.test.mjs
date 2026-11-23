@@ -62,3 +62,57 @@ test("getHandoffMessages keeps compaction summary plus kept entries", () => {
   assert.equal(result[1].role, "assistant");
   assert.equal(result[2].role, "user");
 });
+
+test("getHandoffMessages keeps only the latest summary and later messages when the retained entry is missing", () => {
+  const result = getHandoffMessages([
+    {
+      type: "message",
+      id: "a",
+      parentId: null,
+      timestamp: "2026-06-09T00:00:00.000Z",
+      message: { role: "user", content: "older work", timestamp: 1 },
+    },
+    {
+      type: "compaction",
+      id: "b",
+      parentId: "a",
+      timestamp: "2026-06-09T00:00:01.000Z",
+      summary: "older summary",
+      firstKeptEntryId: "a",
+      tokensBefore: 100,
+    },
+    {
+      type: "message",
+      id: "c",
+      parentId: "b",
+      timestamp: "2026-06-09T00:00:02.000Z",
+      message: { role: "user", content: "work before latest compaction", timestamp: 2 },
+    },
+    {
+      type: "compaction",
+      id: "d",
+      parentId: "c",
+      timestamp: "2026-06-09T00:00:03.000Z",
+      summary: "latest summary",
+      firstKeptEntryId: "missing",
+      tokensBefore: 200,
+    },
+    {
+      type: "message",
+      id: "e",
+      parentId: "d",
+      timestamp: "2026-06-09T00:00:04.000Z",
+      message: { role: "user", content: "work after latest compaction", timestamp: 3 },
+    },
+  ]);
+
+  assert.deepEqual(result, [
+    {
+      role: "compactionSummary",
+      summary: "latest summary",
+      tokensBefore: 200,
+      timestamp: Date.parse("2026-06-09T00:00:03.000Z"),
+    },
+    { role: "user", content: "work after latest compaction", timestamp: 3 },
+  ]);
+});
