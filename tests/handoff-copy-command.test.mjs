@@ -128,6 +128,34 @@ test("runHandoffCopyCommand rejects empty conversation context", async () => {
   ]);
 });
 
+test("runHandoffCopyCommand reports context preparation failures without generating or copying", async () => {
+  const { context, notifications } = createContext({
+    sessionManager: {
+      getBranch: () => {
+        throw new Error("session branch unavailable");
+      },
+    },
+  });
+  let generateCalls = 0;
+  let copyCalls = 0;
+
+  await runHandoffCopyCommand("", context, {
+    generatePrompt: async () => {
+      generateCalls += 1;
+      return "## Context\nA";
+    },
+    copyToClipboard: async () => {
+      copyCalls += 1;
+    },
+  });
+
+  assert.equal(generateCalls, 0);
+  assert.equal(copyCalls, 0);
+  assert.deepEqual(notifications, [
+    { message: `${CLIPBOARD_HANDOFF_FAILED_PREFIX} session branch unavailable`, level: "error" },
+  ]);
+});
+
 test("runHandoffCopyCommand rejects non-interactive contexts", async () => {
   const { context, notifications } = createContext({ hasUI: false });
   let generateCalled = false;

@@ -33,18 +33,18 @@ export async function runHandoffCopyCommand(
     return;
   }
 
-  const branch = ctx.sessionManager.getBranch();
-  const messages = getHandoffMessages(branch);
-  if (messages.length === 0) {
-    ctx.ui.notify("No conversation context available to hand off", "error");
-    return;
-  }
-
-  const conversationText = serializeConversation(convertToLlm(messages));
-  const observedFiles = collectObservedFiles(branch, ctx.cwd);
-  const suggestedSkills = collectUsedSkills(branch);
-
   try {
+    const branch = ctx.sessionManager.getBranch();
+    const messages = getHandoffMessages(branch);
+    if (messages.length === 0) {
+      ctx.ui.notify("No conversation context available to hand off", "error");
+      return;
+    }
+
+    const conversationText = serializeConversation(convertToLlm(messages));
+    const observedFiles = collectObservedFiles(branch, ctx.cwd);
+    const suggestedSkills = collectUsedSkills(branch);
+
     const prompt = await deps.generatePrompt(ctx, conversationText, observedFiles, suggestedSkills);
     if (!prompt) {
       ctx.ui.notify("Cancelled", "info");

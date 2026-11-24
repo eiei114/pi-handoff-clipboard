@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This project follows semantic versioning.
 
+## [Unreleased]
+
+### Fixed
+
+- Show an error in the command UI when `/handoff:copy` cannot prepare the session context.
+
 ## [0.1.14] - 2026-11-07
 
 ### Changed
