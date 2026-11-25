@@ -28,9 +28,31 @@ test("buildGenerationMessage states when no observed files were captured", () =>
   assert.match(message.content[0].text, /\(omit the section\)/);
 });
 
-test("normalizeGeneratedPrompt removes empty suggested-skills sections", () => {
-  const normalized = normalizeGeneratedPrompt(`## Context\nA\n\n## Suggested skills\n\n## Task\nB`);
+test("normalizeGeneratedPrompt preserves inline Suggested skills text", () => {
+  const prompt = "## Context\nThe previous prompt ended with ## Suggested skills\n\n## Task\nB";
+  assert.equal(normalizeGeneratedPrompt(prompt), prompt);
+});
+
+test("normalizeGeneratedPrompt preserves a populated Suggested skills section", () => {
+  const prompt = "## Context\nA\n\n## Suggested skills\n\n- pi-oss-bootstrap\n\n## Task\nB";
+  assert.equal(normalizeGeneratedPrompt(prompt), prompt);
+});
+
+test("normalizeGeneratedPrompt removes an empty heading without joining CRLF sections", () => {
+  const prompt = "## Context\r\nA\r\n\r\n## Suggested skills \r\n \t\r\n## Task\r\nB";
+  const normalized = normalizeGeneratedPrompt(prompt);
   assert.equal(normalized, "## Context\nA\n\n## Task\nB");
+});
+
+test("normalizeGeneratedPrompt removes an empty trailing heading with or without a final newline", () => {
+  for (const suffix of ["", "\n \t\n"]) {
+    assert.equal(normalizeGeneratedPrompt(`## Task\nB\n\n## Suggested skills${suffix}`), "## Task\nB");
+  }
+});
+
+test("normalizeGeneratedPrompt preserves a section with content that starts with hashes", () => {
+  const prompt = "## Suggested skills\n\n##literal\n\n## Task\nB";
+  assert.equal(normalizeGeneratedPrompt(prompt), prompt);
 });
 
 test("buildGenerationMessage survives serialization and restoration with no suggested skills", () => {

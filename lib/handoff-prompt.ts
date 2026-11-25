@@ -57,6 +57,7 @@ export function normalizeGeneratedPrompt(prompt: string): string {
   return prompt
     .replace(/\r\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
-    .replace(/## Suggested skills\s*(?:\n\s*)+(?=##|$)/g, "")
+    // Stop at the next level-two heading or the true end of the prompt, not just the end of a line.
+    .replace(/^## Suggested skills[ \t]*(?:\n[ \t]*)*(?=^##[ \t]|(?![\s\S]))/gm, "")
     .trim();
 }
