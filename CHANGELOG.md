@@ -9,6 +9,7 @@ This project follows semantic versioning.
 ### Fixed
 
 - Show an error in the command UI when `/handoff:copy` cannot prepare the session context.
+- Preserve inline `## Suggested skills` text when removing empty sections from generated handoff prompts.
 
 ## [0.1.14] - 2026-11-07
 

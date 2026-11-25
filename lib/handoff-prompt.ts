@@ -54,9 +54,33 @@ export function buildGenerationMessage(input: {
 }
 
 export function normalizeGeneratedPrompt(prompt: string): string {
-  return prompt
-    .replace(/\r\n/g, "\n")
-    .replace(/\n{3,}/g, "\n\n")
-    .replace(/## Suggested skills\s*(?:\n\s*)+(?=##|$)/g, "")
-    .trim();
+  const lines = prompt.replace(/\r\n/g, "\n").replace(/\n{3,}/g, "\n\n").split("\n");
+  const kept: string[] = [];
+  let fence: string | undefined;
+  let pendingHeading: number | undefined;
+
+  for (const line of lines) {
+    const [, marker, suffix] = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(line) ?? [];
+
+    if (fence) {
+      if (marker && marker[0] === fence[0] && marker.length >= fence.length && /^[ \t]*$/.test(suffix)) {
+        fence = undefined;
+      }
+      kept.push(line);
+      continue;
+    }
+
+    // Drop a candidate and its trailing blank lines only if the next content is a heading.
+    if (!/^[ \t]*$/.test(line)) {
+      if (pendingHeading !== undefined && /^##[ \t]/.test(line)) kept.length = pendingHeading;
+      pendingHeading = /^## Suggested skills[ \t]*$/.test(line) ? kept.length : undefined;
+    }
+
+    if (marker && (marker[0] === "~" || !suffix.includes("`"))) fence = marker;
+    kept.push(line);
+  }
+
+  // An empty section may also run to the end of the prompt.
+  if (pendingHeading !== undefined) kept.length = pendingHeading;
+  return kept.join("\n").trim();
 }
