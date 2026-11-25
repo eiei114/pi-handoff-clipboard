@@ -55,6 +55,22 @@ test("normalizeGeneratedPrompt preserves a section with content that starts with
   assert.equal(normalizeGeneratedPrompt(prompt), prompt);
 });
 
+test("normalizeGeneratedPrompt preserves a Suggested skills example in a code fence", () => {
+  const prompt = ["## Task", "Keep this literal sample:", "", "```md", "## Suggested skills", "## Example", "```"].join("\n");
+  assert.equal(normalizeGeneratedPrompt(prompt), prompt);
+});
+
+test("normalizeGeneratedPrompt removes an empty section after a longer tilde fence", () => {
+  const example = ["## Context", "", "  ~~~~markdown", "~~~", "````", "~~~~ not a closer", "## Suggested skills", "## Example", "  ~~~~~  ", ""].join("\r\n");
+  const prompt = `${example}\r\n## Suggested skills\r\n \t\r\n## Task\r\nB`;
+  assert.equal(normalizeGeneratedPrompt(prompt), `${example.replaceAll("\r\n", "\n")}\n## Task\nB`);
+});
+
+test("normalizeGeneratedPrompt preserves a trailing example in an unclosed fence", () => {
+  const prompt = "## Task\n\n```md\n## Suggested skills";
+  assert.equal(normalizeGeneratedPrompt(prompt), prompt);
+});
+
 test("buildGenerationMessage survives serialization and restoration with no suggested skills", () => {
   const payload = buildGenerationMessage({
     conversationText: "history",
